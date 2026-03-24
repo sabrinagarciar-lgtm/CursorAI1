@@ -1,8 +1,36 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { ProductCardProps } from '../types/product';
 import RatingStars from './RatingStars';
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+  const [imageSrc, setImageSrc] = useState(product.imageUrl);
+
+  useEffect(() => {
+    setImageSrc(product.imageUrl);
+  }, [product.imageUrl]);
+
+  const fallbackImage = useMemo(() => {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#e2e8f0" />
+            <stop offset="100%" stop-color="#cbd5e1" />
+          </linearGradient>
+        </defs>
+        <rect width="400" height="400" fill="url(#bg)" />
+        <rect x="120" y="92" width="160" height="220" rx="26" fill="#334155" />
+        <rect x="140" y="118" width="120" height="12" rx="6" fill="#94a3b8" />
+        <rect x="145" y="220" width="110" height="48" rx="10" fill="#1e293b" />
+        <circle cx="176" cy="244" r="7" fill="#22c55e" />
+        <circle cx="200" cy="244" r="7" fill="#22c55e" />
+        <circle cx="224" cy="244" r="7" fill="#22c55e" />
+        <text x="200" y="350" text-anchor="middle" fill="#0f172a" font-family="Arial, sans-serif" font-size="22">Portable Power Bank</text>
+      </svg>
+    `;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  }, []);
+
   const handleAddToCart = () => {
     onAddToCart?.(product.id);
   };
@@ -30,7 +58,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     >
       <div className="relative aspect-square overflow-hidden bg-slate-100">
         <img
-          src={product.imageUrl}
+          src={imageSrc}
           alt={product.title}
           className="
             h-full w-full object-cover object-center
@@ -38,6 +66,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             group-hover:scale-105
           "
           loading="lazy"
+          onError={() => setImageSrc(fallbackImage)}
         />
         <div
           className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"

@@ -35,7 +35,7 @@ const DEMO_PRODUCTS: Product[] = [
     title: 'Portable Power Bank',
     description: '20000mAh high-capacity power bank with fast charging. Compact design with multiple USB ports for all your devices.',
     price: 49.99,
-    imageUrl: 'https://images.unsplash.com/photo-1609099516989-56e9a9b8a2e0?w=400&h=400&fit=crop',
+    imageUrl: 'https://source.unsplash.com/featured/800x800/?power-bank,portable-charger',
     rating: 4.6,
     reviewCount: 1892,
   },
