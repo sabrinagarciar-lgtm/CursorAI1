@@ -1,0 +1,8 @@
+{
+  "short_name": "Exercise 3",
+  "name": "Exercise 3 Settings",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#f8fafc"
+}
