@@ -1,0 +1,8 @@
+{
+  "short_name": "Exercise 5",
+  "name": "Exercise 5 Product Search",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4f46e5",
+  "background_color": "#f8fafc"
+}
