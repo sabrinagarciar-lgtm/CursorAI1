@@ -1,8 +1,8 @@
 import React from 'react';
-import ProductSearchDemo from './pages/ProductSearchDemo';
+import RegistrationDemo from './pages/RegistrationDemo';
 
 function App() {
-  return <ProductSearchDemo />;
+  return <RegistrationDemo />;
 }
 
 export default App;
