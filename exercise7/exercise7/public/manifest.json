@@ -1,0 +1,8 @@
+{
+  "short_name": "Kanban",
+  "name": "Exercise 7 Kanban Board",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#f8fafc"
+}
