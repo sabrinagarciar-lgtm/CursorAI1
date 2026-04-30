@@ -24,21 +24,23 @@ const COLUMN_COUNT_STYLES: Record<ColumnId, string> = {
 
 export default function BoardColumn({ column, onAddTask, onEditTask, onDeleteTask }: BoardColumnProps) {
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col">
+    <div data-testid={`column-${column.id}`} className="flex-shrink-0 w-72 flex flex-col">
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${column.accentColor} flex-shrink-0`} />
-          <h2 className={`text-sm font-semibold ${COLUMN_HEADER_STYLES[column.id]}`}>
+          <h2 data-testid={`column-title-${column.id}`} className={`text-sm font-semibold ${COLUMN_HEADER_STYLES[column.id]}`}>
             {column.title}
           </h2>
           <span
+            data-testid={`column-count-${column.id}`}
             className={`min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs font-medium flex items-center justify-center ${COLUMN_COUNT_STYLES[column.id]}`}
           >
             {column.tasks.length}
           </span>
         </div>
         <button
+          data-testid={`column-add-btn-${column.id}`}
           onClick={() => onAddTask(column.id)}
           aria-label={`Add task to ${column.title}`}
           className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
@@ -55,6 +57,7 @@ export default function BoardColumn({ column, onAddTask, onEditTask, onDeleteTas
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
+            data-testid={`column-droppable-${column.id}`}
             className={`flex-1 flex flex-col gap-2.5 min-h-[120px] rounded-xl p-2 transition-colors duration-150 ${
               snapshot.isDraggingOver
                 ? 'bg-indigo-50 dark:bg-indigo-950/50 ring-2 ring-indigo-300 dark:ring-indigo-700'
@@ -95,6 +98,7 @@ export default function BoardColumn({ column, onAddTask, onEditTask, onDeleteTas
 
       {/* Add Task Button (footer) */}
       <button
+        data-testid={`column-footer-add-${column.id}`}
         onClick={() => onAddTask(column.id)}
         className="mt-2 flex items-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
       >

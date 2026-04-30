@@ -89,21 +89,28 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-black/70" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop — dedicated hit target so outside clicks reliably close */}
+      <button
+        type="button"
+        data-testid="modal-backdrop"
+        aria-label="Close dialog"
+        className="absolute inset-0 bg-black/50 dark:bg-black/70 cursor-default border-0 p-0"
+        onClick={onClose}
+      />
 
       {/* Modal Panel */}
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+      <div
+        data-testid="task-modal"
+        className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden"
+      >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h2 data-testid="modal-heading" className="text-base font-semibold text-slate-900 dark:text-slate-100">
             {isEditing ? 'Edit Task' : 'Add New Task'}
           </h2>
           <button
+            data-testid="modal-close-btn"
             onClick={onClose}
             className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -123,6 +130,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
               </label>
               <input
                 ref={titleRef}
+                data-testid="modal-title-input"
                 type="text"
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
@@ -134,7 +142,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                 }`}
               />
               {errors.title && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.title}</p>
+                <p data-testid="modal-title-error" className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.title}</p>
               )}
             </div>
 
@@ -144,6 +152,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                 Description
               </label>
               <textarea
+                data-testid="modal-description-input"
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 placeholder="Add more context..."
@@ -159,6 +168,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                   Column
                 </label>
                 <select
+                  data-testid="modal-column-select"
                   value={form.columnId}
                   onChange={(e) => updateField('columnId', e.target.value as ColumnId)}
                   className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -175,6 +185,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                   Priority
                 </label>
                 <select
+                  data-testid="modal-priority-select"
                   value={form.priority}
                   onChange={(e) => updateField('priority', e.target.value as Priority)}
                   className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -195,6 +206,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                   Assignee
                 </label>
                 <select
+                  data-testid="modal-assignee-select"
                   value={form.assigneeId}
                   onChange={(e) => updateField('assigneeId', e.target.value)}
                   className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -212,6 +224,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                   Due Date
                 </label>
                 <input
+                  data-testid="modal-due-date-input"
                   type="date"
                   value={form.dueDate}
                   onChange={(e) => updateField('dueDate', e.target.value)}
@@ -227,6 +240,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
                 <span className="ml-1 font-normal text-slate-400">(comma-separated)</span>
               </label>
               <input
+                data-testid="modal-tags-input"
                 type="text"
                 value={form.tags}
                 onChange={(e) => updateField('tags', e.target.value)}
@@ -255,6 +269,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
           {/* Footer */}
           <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
             <button
+              data-testid="modal-cancel-btn"
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -262,6 +277,7 @@ export default function AddTaskModal({ isEditing, task, defaultColumnId, onSubmi
               Cancel
             </button>
             <button
+              data-testid="modal-submit-btn"
               type="submit"
               className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
             >

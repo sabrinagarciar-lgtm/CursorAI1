@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { Column, Task, Priority, ColumnId, INITIAL_COLUMNS, ASSIGNEES, NewTaskFormData } from './types';
 import BoardColumn from './BoardColumn';
@@ -6,6 +6,47 @@ import AddTaskModal from './AddTaskModal';
 
 type PriorityFilter = Priority | 'all';
 type AssigneeFilter = string | 'all';
+
+/** Sort order for the read-only paginated directory (does not reorder drag-and-drop columns). */
+type DirectorySortOption = 'default' | 'title' | 'due-date' | 'priority-desc' | 'created-desc';
+
+const DIRECTORY_PAGE_SIZE = 3;
+
+const PRIORITY_RANK: Record<Priority, number> = { urgent: 4, high: 3, medium: 2, low: 1 };
+
+function flattenColumnOrder(cols: Column[]): Task[] {
+  const order: ColumnId[] = ['todo', 'in-progress', 'done'];
+  const list: Task[] = [];
+  for (const id of order) {
+    const c = cols.find((x) => x.id === id);
+    if (c) list.push(...c.tasks);
+  }
+  return list;
+}
+
+function sortFlatTasks(tasks: Task[], sortBy: DirectorySortOption): Task[] {
+  const copy = [...tasks];
+  if (sortBy === 'default') return copy;
+  switch (sortBy) {
+    case 'title':
+      return copy.sort((a, b) => a.title.localeCompare(b.title));
+    case 'due-date':
+      return copy.sort((a, b) => {
+        const ad = a.dueDate ?? '\uffff';
+        const bd = b.dueDate ?? '\uffff';
+        return ad.localeCompare(bd);
+      });
+    case 'priority-desc':
+      return copy.sort(
+        (a, b) =>
+          PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority] || a.title.localeCompare(b.title)
+      );
+    case 'created-desc':
+      return copy.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    default:
+      return copy;
+  }
+}
 
 let taskIdCounter = 100;
 
@@ -27,6 +68,9 @@ export default function KanbanBoard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilter>('all');
+  const [directorySort, setDirectorySort] = useState<DirectorySortOption>('default');
+  const [directoryPage, setDirectoryPage] = useState(1);
+  const [loadError, setLoadError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>('todo');
@@ -36,6 +80,25 @@ export default function KanbanBoard() {
     setDarkMode(prefersDark);
     applyDarkMode(prefersDark);
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('e2eError') === '1') {
+      setLoadError(true);
+    }
+  }, []);
+
+  const dismissLoadError = useCallback(() => {
+    setLoadError(false);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('e2eError');
+    const next = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '');
+    window.history.replaceState({}, '', next);
+  }, []);
+
+  useEffect(() => {
+    setDirectoryPage(1);
+  }, [searchQuery, priorityFilter, assigneeFilter, directorySort]);
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode((prev) => {
@@ -183,11 +246,56 @@ export default function KanbanBoard() {
     }),
   }));
 
+  const sortedFlatTasks = useMemo(() => {
+    const flat = flattenColumnOrder(filteredColumns);
+    return sortFlatTasks(flat, directorySort);
+  }, [filteredColumns, directorySort]);
+
+  const totalFiltered = sortedFlatTasks.length;
+  const directoryTotalPages = Math.max(1, Math.ceil(totalFiltered / DIRECTORY_PAGE_SIZE));
+
+  useEffect(() => {
+    setDirectoryPage((p) => Math.min(Math.max(1, p), directoryTotalPages));
+  }, [directoryTotalPages]);
+
+  const safeDirectoryPage = Math.min(directoryPage, directoryTotalPages);
+  const directorySlice = sortedFlatTasks.slice(
+    (safeDirectoryPage - 1) * DIRECTORY_PAGE_SIZE,
+    safeDirectoryPage * DIRECTORY_PAGE_SIZE
+  );
+
   const totalTasks = columns.reduce((sum, col) => sum + col.tasks.length, 0);
   const doneTasks = columns.find((c) => c.id === 'done')?.tasks.length ?? 0;
 
+  if (loadError) {
+    return (
+      <div data-testid="kanban-board" className="min-h-screen bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div
+          data-testid="board-error"
+          role="alert"
+          className="max-w-md w-full rounded-xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 p-6 text-center"
+        >
+          <p data-testid="board-error-message" className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">
+            Unable to load board data
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            Something went wrong while fetching tasks. Please try again.
+          </p>
+          <button
+            type="button"
+            data-testid="board-error-retry"
+            onClick={dismissLoadError}
+            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
+    <div data-testid="kanban-board" className="min-h-screen bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -202,7 +310,7 @@ export default function KanbanBoard() {
                 <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">
                   Project Board
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p data-testid="progress-counter" className="text-xs text-slate-500 dark:text-slate-400">
                   {doneTasks}/{totalTasks} tasks complete
                 </p>
               </div>
@@ -222,6 +330,7 @@ export default function KanbanBoard() {
             </svg>
             <input
               type="text"
+              data-testid="search-input"
               placeholder="Search tasks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -232,6 +341,7 @@ export default function KanbanBoard() {
           {/* Filters */}
           <div className="flex items-center gap-2 flex-wrap">
             <select
+              data-testid="priority-filter"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value as PriorityFilter)}
               className="text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -244,6 +354,7 @@ export default function KanbanBoard() {
             </select>
 
             <select
+              data-testid="assignee-filter"
               value={assigneeFilter}
               onChange={(e) => setAssigneeFilter(e.target.value)}
               className="text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -257,7 +368,22 @@ export default function KanbanBoard() {
               ))}
             </select>
 
+            <select
+              data-testid="sort-select"
+              value={directorySort}
+              onChange={(e) => setDirectorySort(e.target.value as DirectorySortOption)}
+              aria-label="Sort matching tasks"
+              className="text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="default">Sort: Column order</option>
+              <option value="title">Sort: Title (A–Z)</option>
+              <option value="due-date">Sort: Due date</option>
+              <option value="priority-desc">Sort: Priority (high first)</option>
+              <option value="created-desc">Sort: Created (newest)</option>
+            </select>
+
             <button
+              data-testid="add-task-btn"
               onClick={() => openAddModal('todo')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
             >
@@ -268,6 +394,7 @@ export default function KanbanBoard() {
             </button>
 
             <button
+              data-testid="dark-mode-toggle"
               onClick={toggleDarkMode}
               aria-label="Toggle dark mode"
               className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -287,21 +414,31 @@ export default function KanbanBoard() {
 
         {/* Active filter chips */}
         {(searchQuery || priorityFilter !== 'all' || assigneeFilter !== 'all') && (
-          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 pb-2 flex items-center gap-2 flex-wrap">
+          <div data-testid="active-filter-chips" className="max-w-screen-2xl mx-auto px-4 sm:px-6 pb-2 flex items-center gap-2 flex-wrap">
             <span className="text-xs text-slate-500 dark:text-slate-400">Filters:</span>
             {searchQuery && (
-              <FilterChip label={`"${searchQuery}"`} onRemove={() => setSearchQuery('')} />
+              <FilterChip
+                removeTestId="filter-chip-remove-search"
+                label={`"${searchQuery}"`}
+                onRemove={() => setSearchQuery('')}
+              />
             )}
             {priorityFilter !== 'all' && (
-              <FilterChip label={`Priority: ${priorityFilter}`} onRemove={() => setPriorityFilter('all')} />
+              <FilterChip
+                removeTestId="filter-chip-remove-priority"
+                label={`Priority: ${priorityFilter}`}
+                onRemove={() => setPriorityFilter('all')}
+              />
             )}
             {assigneeFilter !== 'all' && (
               <FilterChip
+                removeTestId="filter-chip-remove-assignee"
                 label={`Assignee: ${assigneeFilter === 'unassigned' ? 'Unassigned' : ASSIGNEES.find((a) => a.id === assigneeFilter)?.name ?? assigneeFilter}`}
                 onRemove={() => setAssigneeFilter('all')}
               />
             )}
             <button
+              data-testid="clear-all-filters"
               onClick={() => { setSearchQuery(''); setPriorityFilter('all'); setAssigneeFilter('all'); }}
               className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
             >
@@ -311,10 +448,18 @@ export default function KanbanBoard() {
         )}
       </header>
 
+      {totalFiltered === 0 && (
+        <div data-testid="empty-results" role="status" className="max-w-screen-2xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+            No tasks match your search or filters. Try adjusting filters or clearing them to see tasks again.
+          </div>
+        </div>
+      )}
+
       {/* Board */}
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex gap-5 overflow-x-auto pb-4">
+          <div data-testid="board-columns" className="flex gap-5 overflow-x-auto pb-4">
             {filteredColumns.map((col) => (
               <BoardColumn
                 key={col.id}
@@ -327,6 +472,61 @@ export default function KanbanBoard() {
           </div>
         </DragDropContext>
       </main>
+
+      {/* Paginated directory of current matches (read-only; sort does not affect drag order). */}
+      {totalFiltered > 0 && (
+        <section
+          data-testid="task-directory"
+          className="max-w-screen-2xl mx-auto px-4 sm:px-6 pb-10"
+          aria-label="Matching tasks directory"
+        >
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+              <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Matching tasks</h2>
+              <p data-testid="pagination-info" className="text-xs text-slate-500 dark:text-slate-400">
+                Page {safeDirectoryPage} of {directoryTotalPages} · {totalFiltered} task{totalFiltered === 1 ? '' : 's'}{' '}
+                total
+              </p>
+            </div>
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-lg overflow-hidden mb-3">
+              {directorySlice.map((t) => (
+                <li
+                  key={t.id}
+                  data-testid="paginated-task-row"
+                  className="flex items-center justify-between gap-2 px-3 py-2 text-sm bg-slate-50/80 dark:bg-slate-800/40"
+                >
+                  <span data-testid="paginated-task-title" className="text-slate-800 dark:text-slate-100 truncate">
+                    {t.title}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 capitalize">
+                    {t.priority}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                data-testid="pagination-prev"
+                disabled={safeDirectoryPage <= 1}
+                onClick={() => setDirectoryPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                data-testid="pagination-next"
+                disabled={safeDirectoryPage >= directoryTotalPages}
+                onClick={() => setDirectoryPage((p) => Math.min(directoryTotalPages, p + 1))}
+                className="px-3 py-1.5 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Add / Edit Task Modal */}
       {isModalOpen && (
@@ -342,11 +542,25 @@ export default function KanbanBoard() {
   );
 }
 
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FilterChip({
+  label,
+  onRemove,
+  removeTestId,
+}: {
+  label: string;
+  onRemove: () => void;
+  removeTestId?: string;
+}) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
       {label}
-      <button onClick={onRemove} className="hover:text-indigo-900 dark:hover:text-indigo-100">
+      <button
+        type="button"
+        data-testid={removeTestId}
+        onClick={onRemove}
+        className="hover:text-indigo-900 dark:hover:text-indigo-100"
+        aria-label={`Remove filter ${label}`}
+      >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>

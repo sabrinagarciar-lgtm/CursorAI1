@@ -30,6 +30,7 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          data-testid={`task-card-${task.id}`}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
           className={`relative rounded-lg border bg-white dark:bg-slate-900 transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${
@@ -44,7 +45,8 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
             {/* Top row: priority badge + actions */}
             <div className="flex items-start justify-between gap-2 mb-2">
               <span
-                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${priority.bgLight} ${priority.bgDark} ${priority.textLight} ${priority.textDark}`}
+                data-testid={`task-priority-${task.id}`}
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${priority.bgLight} ${priority.bgDark} ${priority.textLight} ${priority.textDark}`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${priority.dot}`} />
                 {priority.label}
@@ -57,6 +59,7 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
                 }`}
               >
                 <button
+                  data-testid={`task-edit-btn-${task.id}`}
                   onClick={(e) => { e.stopPropagation(); onEdit(task); }}
                   aria-label="Edit task"
                   className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -66,6 +69,7 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
                   </svg>
                 </button>
                 <button
+                  data-testid={`task-delete-btn-${task.id}`}
                   onClick={(e) => { e.stopPropagation(); onDelete(task.id, task.columnId); }}
                   aria-label="Delete task"
                   className="p-1 rounded text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -79,6 +83,7 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
 
             {/* Title */}
             <h3
+              data-testid={`task-title-${task.id}`}
               className={`text-sm font-medium leading-snug mb-1 ${
                 task.columnId === 'done'
                   ? 'line-through text-slate-400 dark:text-slate-500'
@@ -133,13 +138,15 @@ export default function TaskCard({ task, index, onEdit, onDelete }: TaskCardProp
 
               {task.dueDate && (
                 <div
-                  className={`flex items-center gap-1 text-xs ${
-                    task.columnId === 'done'
-                      ? 'text-slate-400 dark:text-slate-500'
-                      : overdue
-                      ? 'text-red-600 dark:text-red-400 font-medium'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}
+              data-testid={`task-due-date-${task.id}`}
+              data-overdue={overdue && task.columnId !== 'done' ? 'true' : undefined}
+              className={`flex items-center gap-1 text-xs ${
+                task.columnId === 'done'
+                  ? 'text-slate-400 dark:text-slate-500'
+                  : overdue
+                  ? 'text-red-600 dark:text-red-400 font-medium'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
