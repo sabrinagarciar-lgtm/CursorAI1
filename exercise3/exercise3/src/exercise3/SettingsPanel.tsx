@@ -338,6 +338,7 @@ export function SettingsPanel() {
 
         <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
           <p
+            id="settings-form-status"
             className="order-2 text-sm text-slate-600 dark:text-slate-400 sm:order-1"
             role="status"
             aria-live="polite"
