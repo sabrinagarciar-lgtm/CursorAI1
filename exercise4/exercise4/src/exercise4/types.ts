@@ -40,3 +40,11 @@ export interface DailyPoint {
   date: string;
   revenue: number;
 }
+
+/** Client-side sort for the transactions table (Exercise 4). */
+export type TableSortOption =
+  | 'date-desc'
+  | 'date-asc'
+  | 'revenue-desc'
+  | 'revenue-asc'
+  | 'product-asc';

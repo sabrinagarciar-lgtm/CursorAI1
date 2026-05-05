@@ -15,6 +15,12 @@ type Props<T> = {
   rowId: (row: T) => string;
   loading?: boolean;
   emptyMessage?: string;
+  /** Optional test id on the empty-state cell for E2E */
+  emptyTestId?: string;
+  /** Optional test id on the table section */
+  sectionTestId?: string;
+  /** Optional stable test id per row */
+  rowTestId?: (row: T) => string;
 };
 
 function TableSkeleton({ cols }: { cols: number }) {
@@ -41,9 +47,15 @@ export function DataTable<T>({
   rowId,
   loading,
   emptyMessage = 'No rows match the selected filters.',
+  emptyTestId,
+  sectionTestId,
+  rowTestId,
 }: Props<T>) {
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-700/80 dark:bg-slate-900/60">
+    <section
+      data-testid={sectionTestId}
+      className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-700/80 dark:bg-slate-900/60"
+    >
       <div className="border-b border-slate-200 px-4 py-4 dark:border-slate-800 sm:px-5">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
         {description ? (
@@ -72,6 +84,7 @@ export function DataTable<T>({
               <tr>
                 <td
                   colSpan={columns.length}
+                  data-testid={emptyTestId}
                   className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400"
                 >
                   {emptyMessage}
@@ -83,6 +96,7 @@ export function DataTable<T>({
               {rows.map(row => (
                 <tr
                   key={rowId(row)}
+                  data-testid={rowTestId?.(row)}
                   className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
                 >
                   {columns.map(col => (

@@ -6,6 +6,9 @@ type Props = {
   onChange: (next: DashboardFilters) => void;
   disabled?: boolean;
   onApplyPresets: (preset: '7d' | '30d' | '90d') => void;
+  matchingCount: number;
+  canClear: boolean;
+  onClearAll: () => void;
 };
 
 const regionOptions: { value: Region | 'all'; label: string }[] = [
@@ -28,13 +31,24 @@ const fieldClass =
 
 const labelClass = 'text-xs font-medium text-slate-600 dark:text-slate-300';
 
-export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: Props) {
+export function FilterToolbar({
+  filters,
+  onChange,
+  disabled,
+  onApplyPresets,
+  matchingCount,
+  canClear,
+  onClearAll,
+}: Props) {
   const patch = (partial: Partial<DashboardFilters>) => {
     onChange({ ...filters, ...partial });
   };
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/60 sm:p-5">
+    <div
+      className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/60 sm:p-5"
+      data-testid="analytics-filter-toolbar"
+    >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid flex-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-2">
@@ -44,6 +58,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             <input
               id="dash-search"
               type="search"
+              data-testid="analytics-search-input"
               autoComplete="off"
               placeholder="Filter by product or id…"
               value={filters.search}
@@ -58,6 +73,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             </label>
             <select
               id="dash-region"
+              data-testid="analytics-region"
               value={filters.region}
               onChange={e => patch({ region: e.target.value as Region | 'all' })}
               disabled={disabled}
@@ -76,6 +92,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             </label>
             <select
               id="dash-segment"
+              data-testid="analytics-segment"
               value={filters.segment}
               onChange={e => patch({ segment: e.target.value as Segment | 'all' })}
               disabled={disabled}
@@ -100,6 +117,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             <input
               id="dash-from"
               type="date"
+              data-testid="analytics-date-from"
               value={filters.dateFrom}
               max={filters.dateTo}
               onChange={e => patch({ dateFrom: e.target.value })}
@@ -114,6 +132,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             <input
               id="dash-to"
               type="date"
+              data-testid="analytics-date-to"
               value={filters.dateTo}
               min={filters.dateFrom}
               onChange={e => patch({ dateTo: e.target.value })}
@@ -134,6 +153,7 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             <button
               key={p.id}
               type="button"
+              data-testid={`analytics-preset-${p.id}`}
               disabled={disabled}
               onClick={() => onApplyPresets(p.id)}
               className="inline-flex min-h-[2.5rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-400 dark:focus-visible:ring-offset-slate-950"
@@ -142,6 +162,26 @@ export function FilterToolbar({ filters, onChange, disabled, onApplyPresets }: P
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+        <p
+          className="text-sm text-slate-600 dark:text-slate-400"
+          data-testid="analytics-result-count"
+          aria-live="polite"
+        >
+          <span className="font-medium text-slate-800 dark:text-slate-200">{matchingCount}</span> matching
+          transaction{matchingCount !== 1 ? 's' : ''} (after filters commit)
+        </p>
+        <button
+          type="button"
+          data-testid="analytics-clear-filters"
+          disabled={disabled || !canClear}
+          onClick={onClearAll}
+          className="inline-flex min-h-[2.5rem] items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          Clear all filters
+        </button>
       </div>
     </div>
   );

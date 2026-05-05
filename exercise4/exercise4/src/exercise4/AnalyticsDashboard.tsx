@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import type { DashboardFilters, ThemePreference, TransactionRow } from './types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { DashboardFilters, TableSortOption, ThemePreference, TransactionRow } from './types';
 import { ChartPlaceholder } from './ChartPlaceholder';
 import { DataTable, type Column } from './DataTable';
 import { FilterToolbar } from './FilterToolbar';
@@ -75,6 +75,26 @@ function RegionBars({ rows }: { rows: TransactionRow[] }) {
 }
 
 const LOAD_MS = 580;
+const TABLE_PAGE_SIZE = 5;
+const DEFAULT_TABLE_SORT: TableSortOption = 'date-desc';
+
+function sortTransactionRows(rows: TransactionRow[], sort: TableSortOption): TransactionRow[] {
+  const copy = [...rows];
+  switch (sort) {
+    case 'date-desc':
+      return copy.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    case 'date-asc':
+      return copy.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    case 'revenue-desc':
+      return copy.sort((a, b) => b.revenue - a.revenue || a.id.localeCompare(b.id));
+    case 'revenue-asc':
+      return copy.sort((a, b) => a.revenue - b.revenue || a.id.localeCompare(b.id));
+    case 'product-asc':
+      return copy.sort((a, b) => a.product.localeCompare(b.product) || a.id.localeCompare(b.id));
+    default:
+      return copy;
+  }
+}
 
 const transactionColumns: Column<TransactionRow>[] = [
   {
@@ -125,6 +145,8 @@ export function AnalyticsDashboard() {
   const [committed, setCommitted] = useState<DashboardFilters>(() => defaultDashboardFilters());
   const [theme, setTheme] = useState<ThemePreference>('system');
   const [isLoading, setIsLoading] = useState(true);
+  const [tableSort, setTableSort] = useState<TableSortOption>(DEFAULT_TABLE_SORT);
+  const [tablePage, setTablePage] = useState(1);
 
   useEffect(() => {
     applyThemeClass(theme);
@@ -159,7 +181,42 @@ export function AnalyticsDashboard() {
     [committed]
   );
 
-  const tableRows = useMemo(() => [...filtered].sort((a, b) => b.date.localeCompare(a.date)), [filtered]);
+  const tableRows = useMemo(() => sortTransactionRows(filtered, tableSort), [filtered, tableSort]);
+
+  const tableTotalPages = Math.max(1, Math.ceil(tableRows.length / TABLE_PAGE_SIZE));
+  const safeTablePage = Math.min(tablePage, tableTotalPages);
+  const tablePageRows = useMemo(() => {
+    const start = (safeTablePage - 1) * TABLE_PAGE_SIZE;
+    return tableRows.slice(start, start + TABLE_PAGE_SIZE);
+  }, [tableRows, safeTablePage]);
+
+  useEffect(() => {
+    setTablePage(1);
+  }, [committed]);
+
+  useEffect(() => {
+    if (tablePage > tableTotalPages) {
+      setTablePage(tableTotalPages);
+    }
+  }, [tablePage, tableTotalPages]);
+
+  const canClear = useMemo(() => {
+    const d = defaultDashboardFilters();
+    return (
+      filters.search.trim() !== '' ||
+      filters.region !== 'all' ||
+      filters.segment !== 'all' ||
+      filters.dateFrom !== d.dateFrom ||
+      filters.dateTo !== d.dateTo ||
+      tableSort !== DEFAULT_TABLE_SORT
+    );
+  }, [filters, tableSort]);
+
+  const handleClearAll = useCallback(() => {
+    setFilters(defaultDashboardFilters());
+    setTableSort(DEFAULT_TABLE_SORT);
+    setTablePage(1);
+  }, []);
 
   const deltaLabel =
     kpis.revenueDeltaPct === null
@@ -185,7 +242,10 @@ export function AnalyticsDashboard() {
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
               Exercise 4
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1
+              data-testid="analytics-heading"
+              className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl"
+            >
               Analytics overview
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
@@ -211,12 +271,19 @@ export function AnalyticsDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:space-y-10 lg:px-8">
+      <main
+        data-testid="analytics-main"
+        aria-busy={isLoading}
+        className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:space-y-10 lg:px-8"
+      >
         <FilterToolbar
           filters={filters}
           onChange={setFilters}
           disabled={isLoading}
           onApplyPresets={handlePresets}
+          matchingCount={filtered.length}
+          canClear={canClear}
+          onClearAll={handleClearAll}
         />
 
         <section aria-labelledby="kpi-heading">
@@ -288,13 +355,70 @@ export function AnalyticsDashboard() {
         </section>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <label htmlFor="analytics-table-sort" className="sr-only">
+                Sort transactions
+              </label>
+              <select
+                id="analytics-table-sort"
+                data-testid="analytics-table-sort"
+                value={tableSort}
+                onChange={e => setTableSort(e.target.value as TableSortOption)}
+                disabled={isLoading}
+                className="min-h-[2.5rem] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/25"
+              >
+                <option value="date-desc">Date (newest)</option>
+                <option value="date-asc">Date (oldest)</option>
+                <option value="revenue-desc">Revenue (high → low)</option>
+                <option value="revenue-asc">Revenue (low → high)</option>
+                <option value="product-asc">Product (A → Z)</option>
+              </select>
+            </div>
+            {tableRows.length > TABLE_PAGE_SIZE && (
+              <nav
+                aria-label="Table pagination"
+                data-testid="analytics-table-pagination"
+                className="flex flex-wrap items-center gap-3"
+              >
+                <button
+                  type="button"
+                  data-testid="analytics-table-prev"
+                  disabled={safeTablePage <= 1 || isLoading}
+                  onClick={() => setTablePage(p => Math.max(1, p - 1))}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  Previous
+                </button>
+                <span
+                  data-testid="analytics-table-page-status"
+                  className="text-sm text-slate-600 dark:text-slate-400"
+                >
+                  Page {safeTablePage} of {tableTotalPages}
+                </span>
+                <button
+                  type="button"
+                  data-testid="analytics-table-next"
+                  disabled={safeTablePage >= tableTotalPages || isLoading}
+                  onClick={() => setTablePage(p => Math.min(tableTotalPages, p + 1))}
+                  className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </nav>
+            )}
+          </div>
+
           <DataTable<TransactionRow>
             title="Transactions"
             description="Filtered mock ledger — search narrows products and ids"
             columns={transactionColumns}
-            rows={tableRows.slice(0, 12)}
+            rows={tablePageRows}
             rowId={r => r.id}
+            rowTestId={r => `analytics-row-${r.id}`}
             loading={isLoading}
+            sectionTestId="analytics-transactions-table"
+            emptyTestId="analytics-table-empty"
           />
         </div>
       </main>
