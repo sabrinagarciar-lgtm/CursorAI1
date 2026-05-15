@@ -85,7 +85,7 @@ One level up, the enclosing **exercise 1** folder has a short README that links 
 
 Product Showcase page at `http://localhost:3000`:
 
-![Product Showcase demo — responsive grid of ProductCard components with ratings and Add to Cart](docs/demo-screenshot.png)
+See screenhost at docs folder
 
 ---
 
