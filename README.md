@@ -1,70 +1,40 @@
-# Getting Started with Create React App
+# CursorAI1 — React exercise collection
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repository holds **eight self-contained [Create React App](https://github.com/facebook/create-react-app)** projects. Each exercise lives under `exerciseN/exerciseN/` with its own `package.json`, **TypeScript** where noted, and **Tailwind CSS** on most apps.
 
-## Available Scripts
+**Common prerequisites:** [Node.js](https://nodejs.org/) 18+ and **npm**. Several exercises need `npm install --legacy-peer-deps` because **TypeScript 5** does not satisfy `react-scripts@5`’s optional peer range (install still works).
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Exercises
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| # | Topic | Summary | README |
+|---|--------|---------|--------|
+| **1** | Product card | E-commerce **ProductCard** grid: image, copy, price, star rating, **Add to Cart**; responsive, accessible, demo screenshot. | [**Exercise 1 →**](exercise1/exercise1/README.md) |
+| **2** | Navigation bar | **Navbar** with logo, links, search, user dropdown, **hamburger** / mobile drawer; sticky header and smooth scroll. | [**Exercise 2 →**](exercise2/exercise2/README.md) |
+| **3** | Settings panel | Tabbed **Profile / Notifications / Privacy / Appearance** with forms, toggles, selects; **dark mode** (`class`); Playwright **e2e**. | [**Exercise 3 →**](exercise3/exercise3/README.md) |
+| **4** | Analytics dashboard | KPI cards, chart placeholders, **filters** and **date range**, sortable paginated table; **dark mode**; Playwright **e2e**. | [**Exercise 4 →**](exercise4/exercise4/README.md) |
+| **5** | Product search | Catalog with **search**, category & **price** filters, **sort**, **pagination**; Playwright **e2e** (app often on **3010** for tests). | [**Exercise 5 →**](exercise5/exercise5/README.md) |
+| **6** | Registration wizard | Multi-step **registration** form; Playwright tests for validation, navigation, submit, **a11y** (alerts, live region); E2E uses **port 3010**. | [**Exercise 6 →**](exercise6/exercise6/README.md) |
+| **7** | Kanban board | **Todo / In Progress / Done** columns; task cards (**assignee**, **due date**, **priority**); **drag-and-drop** (`@hello-pangea/dnd`); **dark mode**; Playwright **e2e** (static serve on **3027`). | [**Exercise 7 →**](exercise7/exercise7/README.md) |
+| **8** | Social feed | **Feed** with **post cards**, like/comment/share/bookmark, **comment threads**, **composer**, **infinite scroll** (Intersection Observer). | [**Exercise 8 →**](exercise8/exercise8/README.md) |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Each row links to the **main app README** inside the nested CRA folder (`exerciseN/exerciseN/README.md`). Parent folders (`exerciseN/README.md`) contain a short pointer and quick start.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Quick start (any exercise)
 
-### `npm run build`
+```bash
+cd exerciseN/exerciseN    # substitute 1–8
+npm install --legacy-peer-deps   # if npm reports peer conflicts
+npm start
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Then open [http://localhost:3000](http://localhost:3000) unless that exercise’s README specifies another port (e.g. Playwright web servers).
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## License / boilerplate
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Individual apps may retain CRA boilerplate in their dependencies. This root file is maintained as an **index** for the exercise set; for framework docs see [Create React App — Getting Started](https://facebook.github.io/create-react-app/docs/getting-started).
