@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+# Exercise 2 — Responsive navigation bar
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A Create React App demo built around a reusable **Navbar**: logo, primary navigation, **search**, **user profile dropdown**, optional notification affordance, and a **mobile hamburger** menu with a slide-in drawer. Configuration and props are expressed in **TypeScript**; layout, responsiveness, sticky behavior, and motion use **Tailwind CSS** transitions.
 
-## Available Scripts
+## Purpose
 
-In the project directory, you can run:
+- **Navbar** (`src/components/Navbar.tsx`) — Fixed (sticky) header with frosted-glass and shadow when the user scrolls past a small threshold; smooth scroll to in-page sections; animated scroll **progress** bar along the bottom of the bar.
+- **Desktop** — Inline nav links with icons and optional badges, expanding **search** field (`role="search"`), notifications control, and **UserDropdown**.
+- **Mobile / tablet** — **Hamburger** control (`aria-expanded`, morphing icon) opens **MobileMenu** with nav, search, and account area; closes on breakpoint change to large screens.
+- **TypeScript** — Shared types for nav items, user profile, and navbar props in `src/types/navigation.ts`.
+- **Tailwind CSS** — Utility classes for breakpoints (`md`, `lg`), hover/focus rings, backdrop blur, and transition durations.
 
-### `npm start`
+The demo page **`NavbarDemo`** (`src/pages/NavbarDemo.tsx`) wires sample nav data, a user profile, and long-form content so you can exercise scroll, hash links, and responsive layouts.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Requirements
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Node.js** 18+ (LTS recommended) and **npm**.
 
-### `npm test`
+## Setup
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. From this directory (the Create React App root):
 
-### `npm run build`
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   `react-scripts@5` optional peers expect TypeScript 3–4; this project uses TypeScript 5, so `--legacy-peer-deps` avoids a peer resolution error at install time.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Start the development server:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   ```bash
+   npm start
+   ```
 
-### `npm run eject`
+   Open [http://localhost:3000](http://localhost:3000). `App` renders `NavbarDemo` by default.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Optional — do not open a browser from the CLI:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```bash
+   BROWSER=none npm start
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. Other scripts:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   | Command         | Description                   |
+   | --------------- | ----------------------------- |
+   | `npm test`      | Jest / React Testing Library  |
+   | `npm run build` | Production build to `build/` |
 
-## Learn More
+### Troubleshooting
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **`EMFILE: too many open files`** — Raise the limit in the same shell (e.g. `ulimit -n 10240`) before `npm start`, or see [CRA troubleshooting](https://facebook.github.io/create-react-app/docs/troubleshooting).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Lint notes
 
-### Code Splitting
+`npm start` may report ESLint warnings (e.g. `jsx-a11y/anchor-is-valid` on the logo `#` link, or `no-useless-escape` in demo copy). They do not block the dev build; fix in place when tightening a11y or strings.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Project structure
 
-### Analyzing the Bundle Size
+```text
+.                             ← Create React App root (this folder)
+├── docs/
+│   └── demo-screenshot.png   ← screenshot of the Navbar demo
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── Navbar.tsx        # Sticky header, search, hamburger, desktop nav
+│   │   ├── MobileMenu.tsx    # Mobile drawer + nav + search
+│   │   ├── UserDropdown.tsx  # Profile menu
+│   │   ├── ProductCard.tsx   # (shared from other exercises)
+│   │   ├── RatingStars.tsx
+│   │   └── TaskList.tsx
+│   ├── pages/
+│   │   ├── NavbarDemo.tsx    # Demo page for the navbar
+│   │   └── ProductDemo.tsx
+│   ├── types/
+│   │   ├── navigation.ts     # NavItem, NavbarProps, UserProfile, …
+│   │   └── product.ts
+│   ├── App.js                # Entry → NavbarDemo
+│   ├── index.js
+│   └── index.css             # Tailwind directives
+├── package.json
+├── tailwind.config.js
+├── postcss.config.js
+└── tsconfig.json
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+One level up, the **exercise 2** folder includes a short README that links here.
 
-### Making a Progressive Web App
+## Demo screenshot
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Navbar demo at `http://localhost:3000`:
 
-### Advanced Configuration
+![Navbar demo — sticky header with logo, nav links, search, and profile area](docs/demo-screenshot.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). More CRA topics live in the [CRA documentation](https://facebook.github.io/create-react-app/docs/getting-started).
