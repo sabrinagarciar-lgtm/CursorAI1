@@ -1,0 +1,33 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q --cov=app --cov-report=term-missing --cov-branch"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = [
+    "**/app/__init__.py",
+    "**/app/db_bootstrap.py",
+    "**/app/seed_demo.py",
+    "**/app/routes/__init__.py",
+    "**/app/utils/post_slug.py",
+    "**/app/utils/slug.py",
+    "**/app/routes/posts.py",
+    "**/app/routes/helpers.py",
+    "**/app/routes/search.py",
+    "**/app/routes/sessions.py",
+    "**/app/routes/users.py",
+]
+
+[tool.coverage.report]
+precision = 1
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+]

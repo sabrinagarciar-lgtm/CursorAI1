@@ -1,0 +1,22 @@
+# Local PostgreSQL for development — matches DATABASE_LOCAL_URL / README defaults.
+# Redis caching is intentionally not bundled here — install/run Redis on the host (see README).
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: blog-platform-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: blog_platform
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - blog_platform_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d blog_platform"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  blog_platform_pgdata:

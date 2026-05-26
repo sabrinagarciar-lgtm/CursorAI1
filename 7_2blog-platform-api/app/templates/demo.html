@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blog platform demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f1419;
+        --card: #1a2230;
+        --muted: #8b97a8;
+        --text: #e8eef8;
+        --accent: #6cb3ff;
+        --chip: rgba(108, 179, 255, 0.15);
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f8fb;
+          --card: #ffffff;
+          --muted: #5c6778;
+          --text: #1a2433;
+          --accent: #0b61c8;
+          --chip: rgba(11, 97, 200, 0.1);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+      }
+      header,
+      main {
+        max-width: 840px;
+        margin: 0 auto;
+        padding: 1.75rem clamp(1rem, 4vw, 2rem);
+      }
+      header {
+        border-bottom: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+      }
+      h1 {
+        font-size: 1.65rem;
+        margin: 0 0 0.35rem;
+      }
+      .lede {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.97rem;
+      }
+      nav.links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      nav.links a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.92rem;
+      }
+      nav.links a:hover {
+        text-decoration: underline;
+      }
+      .banner {
+        margin-top: 1.25rem;
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        font-size: 0.88rem;
+      }
+      .empty {
+        color: var(--muted);
+        margin-top: 2rem;
+      }
+      article.card {
+        background: var(--card);
+        padding: 1.25rem 1.35rem;
+        border-radius: 12px;
+        margin-top: 1.1rem;
+        border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      }
+      article.card h2 {
+        font-size: 1.22rem;
+        margin: 0 0 0.35rem;
+      }
+      .meta {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .summary {
+        margin: 0.85rem 0 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+      }
+      .pill {
+        font-size: 0.74rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        background: var(--chip);
+        color: var(--text);
+      }
+      footer.row {
+        margin-top: 0.95rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      footer.row a {
+        color: var(--accent);
+        font-size: 0.88rem;
+        text-decoration: none;
+      }
+      footer.row a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Blog platform demo</h1>
+      <p class="lede">
+        Published posts from your database. Run <code>flask seed-demo</code> to load
+        sample authors, categories, tags, and comments.
+      </p>
+      <nav class="links" aria-label="API entry points">
+        <a href="{{ api_links.swagger }}">Swagger UI</a>
+        <a href="{{ api_links.openapi_json }}">OpenAPI JSON</a>
+        <a href="{{ api_links.health }}">Health</a>
+      </nav>
+      <p class="banner">{{ demo_password_note }}</p>
+      {% if db_error %}
+        <div
+          class="banner"
+          style="background: color-mix(in srgb, #f59e0b 18%, transparent)"
+        >
+          {% if db_error_kind == "postgres_role_missing" %}
+            <p>
+              <strong>Role exists on Cloud SQL, not on this Postgres.</strong> Your
+              <code>DATABASE_URL</code> user (in the error) is normally a
+              <strong>Cloud SQL account</strong>. Hitting
+              <code>127.0.0.1:5432</code> only works if that listener is the
+              <strong>Cloud&nbsp;SQL&nbsp;Auth&nbsp;Proxy</strong> tunneled to your
+              instance — not a stock local Homebrew/Docker server.
+            </p>
+            <p>
+              <strong>Fix A (typical on a laptop):</strong> run the proxy, then keep
+              your current <code>DATABASE_URL</code>:
+            </p>
+            <pre style="white-space: pre-wrap; font-size: 0.82rem; margin: 0.5rem 0 0">cloud-sql-proxy "{{ cloudsql_instance or "PROJECT:REGION:INSTANCE" }}"</pre>
+            <p>
+              <strong>Fix B (true local Postgres):</strong> create the same role and
+              database locally, or switch <code>DATABASE_URL</code> to a user that
+              already exists there (e.g. your macOS login or <code>postgres</code>).
+              See README <em>Troubleshooting: database connection</em>.
+            </p>
+          {% else %}
+            <p>
+              Database unreachable (demo still loads). Run PostgreSQL reachable at
+              your <code>DATABASE_URL</code>. Defaults in <code>config.py</code> use
+              <code>postgres</code> / <code>blog_platform</code> when no env is
+              set.
+            </p>
+            <p>
+              <strong>Local dev (no Docker):</strong>
+              <code>brew install postgresql@18 && brew services start postgresql@18</code>,
+              optional <code>flask init-db</code> (creates DB if allowed), then adjust
+              <code>DATABASE_URL</code> to match your local user/DB.
+              <strong>Docker:</strong>
+              <code>docker compose up -d postgres</code> from this repo.
+            </p>
+          {% endif %}
+          <p style="margin-bottom: 0">
+            Details:<br />
+            <code style="word-break: break-all">{{ db_error }}</code>
+          </p>
+        </div>
+      {% endif %}
+    </header>
+    <main>
+      {% if posts %}
+        {% for post in posts %}
+          <article class="card">
+            <h2>{{ post.title }}</h2>
+            <p class="meta">
+              By {{ post.author.name if post.author else "Unknown" }} ·
+              {% if post.published_at %}
+                {{ post.published_at.strftime("%Y-%m-%d %H:%M UTC") }}
+              {% else %}
+                no publish date
+              {% endif %}
+            </p>
+            {% if post.summary %}
+              <p class="summary">{{ post.summary }}</p>
+            {% endif %}
+            {% if post.categories or post.tags %}
+              <div class="pill-row" aria-label="Taxonomy">
+                {% for c in post.categories %}
+                  <span class="pill" title="Category">{{ c.name }}</span>
+                {% endfor %}
+                {% for t in post.tags %}
+                  <span class="pill" title="Tag">#{{ t.name }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <footer class="row">
+              <a href="/api/posts/{{ post.slug }}">JSON (public, enveloped)</a>
+              <a href="/api/posts/{{ post.slug }}/comments?page=1">Comments (paginated)</a>
+            </footer>
+          </article>
+        {% endfor %}
+      {% else %}
+        <p class="empty">
+          No published posts yet. Create tables with <code>flask init-db</code>, then run
+          <code>flask seed-demo</code> and refresh this page.
+        </p>
+      {% endif %}
+    </main>
+  </body>
+</html>
