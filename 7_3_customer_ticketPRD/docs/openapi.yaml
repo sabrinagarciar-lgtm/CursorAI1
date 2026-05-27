@@ -1,0 +1,173 @@
+openapi: "3.0.3"
+info:
+  title: Customer Support Ticket API
+  description: Flask reference surface for PRD §6 (core ticketing, RBAC, SLA metadata hooks).
+  version: "1.0.0"
+servers:
+  - url: /
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TicketCreatePayload:
+      type: object
+      required: [subject, description, priority, category, customer_email]
+      properties:
+        subject:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        category:
+          type: string
+          enum: [technical, billing, general, feature_request]
+        customer_email:
+          type: string
+          format: email
+        auto_assign:
+          type: boolean
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Self-service registration with bcrypt-hashed credential
+      responses:
+        "201":
+          description: Account provisioned
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Exchange password for JWT (24h default)
+      responses:
+        "200":
+          description: Credential accepted
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      security: [{ BearerAuth: [] }]
+      summary: Hydrate JWT subject
+      responses:
+        "200":
+          description: Serialized User
+  /api/tickets:
+    get:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Scoped listing with pagination defaults (FR-027)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: Envelope `{status,data,meta}`
+    post:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Validates FR-001/FR-002/FR-004 + optional multipart attachments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketCreatePayload"
+      responses:
+        "201":
+          description: Fresh ticket persisted
+  /api/tickets/{ticket_id}:
+    parameters:
+      - in: path
+        name: ticket_id
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Hydrates SLA windows (FR-020/021)
+      responses:
+        "200":
+          description: Ticket detail
+    put:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: Administrative metadata updates
+    delete:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      responses:
+        "204":
+          description: Admin purge
+  /api/tickets/{ticket_id}/assign:
+    post:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Manual/auto assignment (FR-005/007/009/010)
+      responses:
+        "200":
+          description: Hydrated ticket envelope
+  /api/tickets/{ticket_id}/status:
+    put:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Enforces finite state machine transitions (FR-011/013/014)
+      responses:
+        "200":
+          description: Updated lifecycle record
+  /api/tickets/{ticket_id}/priority:
+    put:
+      tags: [Tickets]
+      security: [{ BearerAuth: [] }]
+      summary: Agent/admin escalation with audited rationale (FR-023/024)
+      responses:
+        "200":
+          description: SLA metadata refresh
+  /api/tickets/{ticket_id}/comments:
+    parameters:
+      - in: path
+        name: ticket_id
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Collaboration]
+      security: [{ BearerAuth: [] }]
+      summary: Filtered chronological thread (customers hide internals)
+      responses:
+        "200":
+          description: Comment array
+    post:
+      tags: [Collaboration]
+      security: [{ BearerAuth: [] }]
+      summary: Mention-aware notifications per FR-018
+      responses:
+        "201":
+          description: Comment receipt ack
+  /api/tickets/{ticket_id}/history:
+    parameters:
+      - in: path
+        name: ticket_id
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Audit]
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: Timeline of assignments/status transitions
+  /api/agents:
+    get:
+      tags: [Agents]
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: Directory of technician profiles
+security:
+  - BearerAuth: []

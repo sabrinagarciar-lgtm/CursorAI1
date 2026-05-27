@@ -1,0 +1,22 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q --cov=app --cov-report=term-missing --cov-branch"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = [
+    "**/__init__.py",
+]
+
+[tool.coverage.report]
+precision = 1
+fail_under = 73
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+]
