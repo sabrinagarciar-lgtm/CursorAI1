@@ -1,0 +1,14 @@
+{
+  "name": "shopease-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "screenshots": "node capture-screenshots.mjs",
+    "flow": "node build-flow-collage.mjs",
+    "capture-all": "node capture-screenshots.mjs && node build-flow-collage.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0",
+    "sharp": "^0.33.5"
+  }
+}

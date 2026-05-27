@@ -28,6 +28,32 @@ flowchart LR
 | **Orders** (`/orders`) | **Customers:** `GET /api/orders` returns only their orders. **Admins:** all orders with customer name/email |
 | **Order detail** | Expandable cards; link to full confirmation view |
 
+---
+
+## Frontend Flow (Screenshots)
+
+Captured from the running app (May 27, 2026). Shop → Cart → Sign in → Checkout → Confirmation → **My Orders**.
+
+![ShopEase frontend flow: shop, cart, checkout, confirmation, and orders](docs/screenshots/00-frontend-flow.png)
+
+| Step | Screen |
+|------|--------|
+| 1. Shop | ![Shop catalog](docs/screenshots/01-shop-page.png) |
+| 2. Cart | ![Cart with items](docs/screenshots/02-cart-with-items.png) |
+| 3. Sign in | ![Sign in page](docs/screenshots/03-sign-in.png) |
+| 4. Checkout | ![Checkout form](docs/screenshots/04-checkout.png) |
+| 5. Confirmation | ![Order confirmation](docs/screenshots/05-order-confirmation.png) |
+| 6. My Orders | ![Customer orders list](docs/screenshots/06-my-orders.png) |
+
+Regenerate screenshots (requires backend on **5052** and frontend on **5175**):
+
+```bash
+cd 8_2/docs
+npm install
+npx playwright install chromium
+npm run capture-all
+```
+
 ### Tech stack
 
 | Layer | Technologies |
