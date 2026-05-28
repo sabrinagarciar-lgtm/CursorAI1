@@ -314,10 +314,10 @@ jobs:
         run: .venv/bin/pip install bandit pip-audit
 
       - name: Bandit SAST
-        run: bandit -r app -ll -f json -o bandit-report.json || bandit -r app -ll
+        run: .venv/bin/bandit -r app -ll -f json -o bandit-report.json || .venv/bin/bandit -r app -ll
 
       - name: pip-audit (dependency check)
-        run: pip-audit -r requirements.txt
+        run: .venv/bin/pip-audit -r requirements.txt
 
       - name: Snyk (Python)
         if: env.SNYK_TOKEN != ''
