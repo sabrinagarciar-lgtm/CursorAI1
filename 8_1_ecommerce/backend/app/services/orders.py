@@ -21,12 +21,19 @@ def fetch_products_by_ids(product_ids: list[str]) -> dict[str, sqlite3.Row]:
     if not product_ids:
         return {}
     db = get_db()
-    placeholders = ",".join("?" for _ in product_ids)
-    rows = db.execute(
-        f"SELECT id, title, description, price, image_url, rating, review_count FROM products WHERE id IN ({placeholders})",
-        product_ids,
-    ).fetchall()
-    return {row["id"]: row for row in rows}
+    result: dict[str, sqlite3.Row] = {}
+    for product_id in product_ids:
+        row = db.execute(
+            """
+            SELECT id, title, description, price, image_url, rating, review_count
+            FROM products
+            WHERE id = ?
+            """,
+            (product_id,),
+        ).fetchone()
+        if row is not None:
+            result[row["id"]] = row
+    return result
 
 
 def create_order(payload: dict) -> dict:
