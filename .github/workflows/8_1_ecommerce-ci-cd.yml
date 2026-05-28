@@ -30,8 +30,6 @@ jobs:
   setup-frontend:
     name: Setup Frontend Deps
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/frontend
