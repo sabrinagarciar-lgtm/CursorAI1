@@ -3,8 +3,9 @@
 set -euo pipefail
 
 REGISTRY="${REGISTRY:-ghcr.io}"
-IMAGE_BACKEND="${IMAGE_BACKEND:-${REGISTRY}/${GITHUB_REPOSITORY}/shopease-backend}"
-IMAGE_FRONTEND="${IMAGE_FRONTEND:-${REGISTRY}/${GITHUB_REPOSITORY}/shopease-frontend}"
+REPO_LOWER="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+IMAGE_BACKEND="${IMAGE_BACKEND:-${REGISTRY}/${REPO_LOWER}/shopease-backend}"
+IMAGE_FRONTEND="${IMAGE_FRONTEND:-${REGISTRY}/${REPO_LOWER}/shopease-frontend}"
 SHA="${GITHUB_SHA}"
 
 echo "Deploying green environment for commit ${SHA}"

@@ -24,6 +24,7 @@ env:
   PYTHON_VERSION: "3.12"
   PROJECT_DIR: 8_1_ecommerce
   REGISTRY: ghcr.io
+  IMAGE_REPO: ${{ toLower(github.repository) }}
 
 jobs:
   # ── Dependency setup (parallel, cached) ─────────────────────────────────────
@@ -361,8 +362,8 @@ jobs:
           file: ${{ env.PROJECT_DIR }}/docker/Dockerfile.backend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-backend:green-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-backend:green
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}/shopease-backend:green-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}/shopease-backend:green
           cache-from: type=gha,scope=shopease-backend
           cache-to: type=gha,mode=max,scope=shopease-backend
 
@@ -373,8 +374,8 @@ jobs:
           file: ${{ env.PROJECT_DIR }}/docker/Dockerfile.frontend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-frontend:green-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-frontend:green
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}/shopease-frontend:green-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}/shopease-frontend:green
           cache-from: type=gha,scope=shopease-frontend
           cache-to: type=gha,mode=max,scope=shopease-frontend
 

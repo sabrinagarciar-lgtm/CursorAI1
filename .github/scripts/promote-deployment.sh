@@ -4,8 +4,9 @@ set -euo pipefail
 
 SHA="${GREEN_SHA:-${GITHUB_SHA}}"
 REGISTRY="${REGISTRY:-ghcr.io}"
-IMAGE_BACKEND="${IMAGE_BACKEND:-${REGISTRY}/${GITHUB_REPOSITORY}/shopease-backend}"
-IMAGE_FRONTEND="${IMAGE_FRONTEND:-${REGISTRY}/${GITHUB_REPOSITORY}/shopease-frontend}"
+REPO_LOWER="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+IMAGE_BACKEND="${IMAGE_BACKEND:-${REGISTRY}/${REPO_LOWER}/shopease-backend}"
+IMAGE_FRONTEND="${IMAGE_FRONTEND:-${REGISTRY}/${REPO_LOWER}/shopease-frontend}"
 
 echo "Promoting green (${SHA}) to blue/production."
 
