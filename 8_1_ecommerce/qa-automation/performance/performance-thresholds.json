@@ -1,0 +1,24 @@
+{
+  "description": "ShopEase QA performance quality gates",
+  "targets": {
+    "response_time_p95_ms": 500,
+    "error_rate_percent": 1.0,
+    "http_req_duration_avg_ms": 300,
+    "lighthouse_performance_score": 70,
+    "lighthouse_accessibility_score": 90
+  },
+  "k6": {
+    "vus": 10,
+    "duration": "30s",
+    "thresholds": {
+      "http_req_duration": ["p(95)<500"],
+      "http_req_failed": ["rate<0.01"],
+      "checks": ["rate>0.99"]
+    }
+  },
+  "endpoints": {
+    "products": "/api/products",
+    "discount_validate": "/api/discounts/validate",
+    "checkout": "/api/checkout"
+  }
+}

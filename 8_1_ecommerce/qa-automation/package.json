@@ -1,0 +1,25 @@
+{
+  "name": "shopease-qa-automation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "QA automation suite for ShopEase 8_1 e-commerce",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint:frontend": "cd ../frontend && eslint src --config ../qa-automation/quality/eslint.config.js -f json -o ../qa-automation/results/eslint-report.json || true",
+    "lint:frontend:check": "cd ../frontend && eslint src --config ../qa-automation/quality/eslint.config.js --max-warnings 0",
+    "report:lint": "cd ../frontend && eslint src --config ../qa-automation/quality/eslint.config.js -f stylish"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.12.0",
+    "typescript": "~5.6.3",
+    "typescript-eslint": "^8.15.0"
+  }
+}
