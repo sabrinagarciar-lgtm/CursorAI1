@@ -31,7 +31,7 @@ jobs:
     name: Setup Frontend Deps
     runs-on: ubuntu-latest
     outputs:
-      cache-key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+      cache-key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/frontend
@@ -47,7 +47,7 @@ jobs:
         id: npm-cache
         with:
           path: ${{ env.PROJECT_DIR }}/frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
           restore-keys: |
             npm-${{ runner.os }}-
 
@@ -75,7 +75,7 @@ jobs:
           path: |
             ${{ env.PROJECT_DIR }}/backend/.venv
             ~/.cache/pip
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('8_1_ecommerce/backend/requirements.txt') }}
           restore-keys: |
             venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PROJECT_DIR }}/frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
           restore-keys: npm-${{ runner.os }}-
 
       - name: Install dependencies (cache miss fallback)
@@ -142,7 +142,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PROJECT_DIR }}/frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
           restore-keys: npm-${{ runner.os }}-
 
       - run: npm ci
@@ -166,7 +166,7 @@ jobs:
           path: |
             ${{ env.PROJECT_DIR }}/backend/.venv
             ~/.cache/pip
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('8_1_ecommerce/backend/requirements.txt') }}
           restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
       - name: Ensure virtualenv exists
@@ -197,7 +197,7 @@ jobs:
           path: |
             ${{ env.PROJECT_DIR }}/backend/.venv
             ~/.cache/pip
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('8_1_ecommerce/backend/requirements.txt') }}
           restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
       - name: Ensure virtualenv exists
@@ -228,7 +228,7 @@ jobs:
           path: |
             ${{ env.PROJECT_DIR }}/backend/.venv
             ~/.cache/pip
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('8_1_ecommerce/backend/requirements.txt') }}
           restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
       - name: Ensure virtualenv exists
@@ -262,7 +262,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PROJECT_DIR }}/frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          key: npm-${{ runner.os }}-${{ hashFiles('8_1_ecommerce/frontend/package-lock.json') }}
           restore-keys: npm-${{ runner.os }}-
 
       - run: npm ci
@@ -301,7 +301,7 @@ jobs:
           path: |
             ${{ env.PROJECT_DIR }}/backend/.venv
             ~/.cache/pip
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('8_1_ecommerce/backend/requirements.txt') }}
           restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
       - name: Ensure virtualenv exists
