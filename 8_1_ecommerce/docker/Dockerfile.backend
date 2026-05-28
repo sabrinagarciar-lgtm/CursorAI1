@@ -1,0 +1,20 @@
+FROM python:3.12-slim AS base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/app ./app
+COPY backend/run.py .
+
+ENV FLASK_ENV=production
+EXPOSE 5051
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:5051/api/health || exit 1
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5051", "--workers", "2", "--timeout", "30", "run:app"]

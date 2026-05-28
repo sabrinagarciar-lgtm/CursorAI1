@@ -6,163 +6,577 @@ on:
     paths:
       - "8_1_ecommerce/**"
       - ".github/workflows/8_1_ecommerce-ci-cd.yml"
+      - ".github/scripts/**"
   pull_request:
     branches: [main]
     paths:
       - "8_1_ecommerce/**"
       - ".github/workflows/8_1_ecommerce-ci-cd.yml"
+      - ".github/scripts/**"
   workflow_dispatch:
+
+concurrency:
+  group: shopease-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   NODE_VERSION: "20"
   PYTHON_VERSION: "3.12"
   PROJECT_DIR: 8_1_ecommerce
+  REGISTRY: ghcr.io
 
 jobs:
-  # ── Build ──────────────────────────────────────────────────────────────────
-  build-frontend:
-    name: Build Frontend
+  # ── Dependency setup (parallel, cached) ─────────────────────────────────────
+  setup-frontend:
+    name: Setup Frontend Deps
     runs-on: ubuntu-latest
+    outputs:
+      cache-key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/frontend
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: ${{ env.PROJECT_DIR }}/frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Install npm dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Build React app
-        run: npm run build
-
-      - name: Upload frontend artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: ${{ env.PROJECT_DIR }}/frontend/dist
-          retention-days: 7
-
-  build-backend:
-    name: Build Backend
+  setup-backend:
+    name: Setup Backend Deps
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/backend
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/backend/requirements.txt
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Cache pip + virtualenv
+        uses: actions/cache@v4
+        id: venv-cache
+        with:
+          path: |
+            ${{ env.PROJECT_DIR }}/backend/.venv
+            ~/.cache/pip
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
-      - name: Verify Python package compiles
-        run: python -m compileall app
+      - name: Create virtualenv and install
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
 
-  # ── Test ───────────────────────────────────────────────────────────────────
-  test-frontend:
-    name: Test Frontend
+      - name: Verify venv on cache hit
+        run: .venv/bin/python -m compileall app
+
+  # ── Build (parallel with tests & security) ──────────────────────────────────
+  build-frontend:
+    name: Build Frontend
     runs-on: ubuntu-latest
-    needs: build-frontend
+    needs: setup-frontend
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/frontend
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}/frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - name: Install dependencies (cache miss fallback)
         run: npm ci
 
-      - name: Run Vitest
-        run: npm test
+      - name: Build React app
+        run: npm run build
 
-  test-backend:
-    name: Test Backend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: ${{ env.PROJECT_DIR }}/frontend/dist
+          retention-days: 3
+
+  # ── Parallel tests (4 jobs) ─────────────────────────────────────────────────
+  test-frontend:
+    name: Test Frontend
     runs-on: ubuntu-latest
-    needs: build-backend
+    needs: setup-frontend
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}/frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - run: npm ci
+      - run: npm test
+
+  test-backend-unit:
+    name: Test Backend (Unit)
+    runs-on: ubuntu-latest
+    needs: setup-backend
     defaults:
       run:
         working-directory: ${{ env.PROJECT_DIR }}/backend
     env:
       FLASK_ENV: testing
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Restore virtualenv cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT_DIR }}/backend/.venv
+            ~/.cache/pip
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Ensure virtualenv exists
+        run: |
+          if [ ! -d .venv ]; then
+            python -m venv .venv
+            .venv/bin/pip install --upgrade pip
+            .venv/bin/pip install -r requirements.txt
+          fi
+
+      - run: .venv/bin/pytest -m unit -v --no-cov
+
+  test-backend-checkout:
+    name: Test Backend (Checkout Flows)
+    runs-on: ubuntu-latest
+    needs: setup-backend
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/backend
+    env:
+      FLASK_ENV: testing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore virtualenv cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT_DIR }}/backend/.venv
+            ~/.cache/pip
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Ensure virtualenv exists
+        run: |
+          if [ ! -d .venv ]; then
+            python -m venv .venv
+            .venv/bin/pip install --upgrade pip
+            .venv/bin/pip install -r requirements.txt
+          fi
+
+      - run: .venv/bin/pytest -m "positive or negative" -v --no-cov
+
+  test-backend-security-edge:
+    name: Test Backend (Security & Edge)
+    runs-on: ubuntu-latest
+    needs: setup-backend
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/backend
+    env:
+      FLASK_ENV: testing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore virtualenv cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT_DIR }}/backend/.venv
+            ~/.cache/pip
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Ensure virtualenv exists
+        run: |
+          if [ ! -d .venv ]; then
+            python -m venv .venv
+            .venv/bin/pip install --upgrade pip
+            .venv/bin/pip install -r requirements.txt
+          fi
+
+      - run: .venv/bin/pytest -m "security or edge" -v --cov=app --cov-report=term-missing
+
+  # ── Security scanning (parallel) ────────────────────────────────────────────
+  security-frontend:
+    name: Security Scan (Frontend)
+    runs-on: ubuntu-latest
+    needs: setup-frontend
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}/frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles(format('{0}/frontend/package-lock.json', env.PROJECT_DIR)) }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - run: npm ci
+
+      - name: npm audit (dependency check)
+        run: npm audit --audit-level=high
+
+      - name: Snyk (Node.js)
+        if: env.SNYK_TOKEN != ''
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=package.json
+        continue-on-error: false
+
+  security-backend:
+    name: Security Scan (Backend)
+    runs-on: ubuntu-latest
+    needs: setup-backend
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/backend/requirements.txt
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Restore virtualenv cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT_DIR }}/backend/.venv
+            ~/.cache/pip
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles(format('{0}/backend/requirements.txt', env.PROJECT_DIR)) }}
+          restore-keys: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
-      - name: Run pytest
-        run: pytest --cov=app --cov-report=term-missing
+      - name: Ensure virtualenv exists
+        run: |
+          if [ ! -d .venv ]; then
+            python -m venv .venv
+            .venv/bin/pip install --upgrade pip
+            .venv/bin/pip install -r requirements.txt
+          fi
 
-  # ── Deploy ─────────────────────────────────────────────────────────────────
-  deploy:
-    name: Deploy
+      - name: Install security tools
+        run: .venv/bin/pip install bandit pip-audit
+
+      - name: Bandit SAST
+        run: bandit -r app -ll -f json -o bandit-report.json || bandit -r app -ll
+
+      - name: pip-audit (dependency check)
+        run: pip-audit -r requirements.txt
+
+      - name: Snyk (Python)
+        if: env.SNYK_TOKEN != ''
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=requirements.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: ${{ env.PROJECT_DIR }}/backend/bandit-report.json
+          retention-days: 7
+
+  # ── Docker build with GHA layer cache ───────────────────────────────────────
+  build-docker:
+    name: Build Docker Images
     runs-on: ubuntu-latest
-    needs: [test-frontend, test-backend]
+    needs: [setup-backend, build-frontend]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.PROJECT_DIR }}
+          file: ${{ env.PROJECT_DIR }}/docker/Dockerfile.backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-backend:green-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-backend:green
+          cache-from: type=gha,scope=shopease-backend
+          cache-to: type=gha,mode=max,scope=shopease-backend
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.PROJECT_DIR }}
+          file: ${{ env.PROJECT_DIR }}/docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-frontend:green-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/shopease-frontend:green
+          cache-from: type=gha,scope=shopease-frontend
+          cache-to: type=gha,mode=max,scope=shopease-frontend
+
+  # ── Blue-green deploy ───────────────────────────────────────────────────────
+  deploy-green:
+    name: Deploy Green Slot
+    runs-on: ubuntu-latest
+    needs:
+      - build-frontend
+      - build-docker
+      - test-frontend
+      - test-backend-unit
+      - test-backend-checkout
+      - test-backend-security-edge
+      - security-frontend
+      - security-backend
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
+      name: production-green
+    outputs:
+      green_sha: ${{ steps.deploy.outputs.green_sha }}
+      previous_blue_sha: ${{ steps.deploy.outputs.previous_blue_sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to green
+        id: deploy
+        env:
+          DEPLOY_WEBHOOK_GREEN: ${{ secrets.DEPLOY_WEBHOOK_GREEN }}
+          PREVIOUS_BLUE_SHA: ${{ vars.PREVIOUS_BLUE_SHA }}
+        run: bash .github/scripts/blue-green-deploy.sh
+
+  health-check:
+    name: Health Check (Green)
+    runs-on: ubuntu-latest
+    needs: deploy-green
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      health_status: ${{ steps.check.outputs.health_status }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Poll green endpoints
+        id: check
+        env:
+          GREEN_BACKEND_URL: ${{ secrets.GREEN_BACKEND_URL }}
+          GREEN_FRONTEND_URL: ${{ secrets.GREEN_FRONTEND_URL }}
+        run: bash .github/scripts/health-check.sh
+
+  promote:
+    name: Promote Green → Blue
+    runs-on: ubuntu-latest
+    needs: [deploy-green, health-check]
+    if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
       name: production
-      url: ${{ steps.deploy-frontend.outputs.page_url }}
+      url: ${{ steps.pages.outputs.page_url }}
     permissions:
       contents: read
       pages: write
       id-token: write
     steps:
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+
+      - name: Promote to production
+        env:
+          DEPLOY_WEBHOOK_BLUE: ${{ secrets.DEPLOY_WEBHOOK_BLUE }}
+          GREEN_SHA: ${{ needs.deploy-green.outputs.green_sha }}
+        run: bash .github/scripts/promote-deployment.sh
+
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: dist
 
-      - name: Set up GitHub Pages
-        uses: actions/configure-pages@v4
+      - uses: actions/configure-pages@v4
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
       - name: Deploy frontend to GitHub Pages
-        id: deploy-frontend
+        id: pages
         uses: actions/deploy-pages@v4
 
-      - name: Deploy Flask backend
+      - name: Store blue SHA for next rollback
+        run: echo "Update repo variable PREVIOUS_BLUE_SHA to ${{ needs.deploy-green.outputs.green_sha }}"
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-green, health-check]
+    if: failure() && needs.health-check.result == 'failure' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Roll back to previous blue
         env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.BACKEND_DEPLOY_WEBHOOK_URL }}
+          DEPLOY_WEBHOOK_BLUE: ${{ secrets.DEPLOY_WEBHOOK_BLUE }}
+          PREVIOUS_BLUE_SHA: ${{ needs.deploy-green.outputs.previous_blue_sha }}
+        run: bash .github/scripts/rollback.sh
+
+  # ── Monitoring & alerting ─────────────────────────────────────────────────
+  notify-slack:
+    name: Slack Alert
+    runs-on: ubuntu-latest
+    needs:
+      - setup-frontend
+      - setup-backend
+      - build-frontend
+      - test-frontend
+      - test-backend-unit
+      - test-backend-checkout
+      - test-backend-security-edge
+      - security-frontend
+      - security-backend
+      - build-docker
+      - deploy-green
+      - health-check
+      - promote
+      - rollback
+    if: always()
+    steps:
+      - name: Detect failures
+        id: failed
         run: |
-          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
-            echo "BACKEND_DEPLOY_WEBHOOK_URL secret not set — skipping backend deploy."
-            echo "Add a webhook URL from your hosting provider (Render, Railway, etc.)."
+          results="${{ join(needs.*.result, ',') }}"
+          if echo "$results" | grep -q failure; then
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send Slack notification
+        if: steps.failed.outputs.failed == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not set — skipping notification."
             exit 0
           fi
-          curl -fsSL -X POST "$DEPLOY_WEBHOOK_URL"
+          curl -fsSL -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -n \
+              --arg repo "${{ github.repository }}" \
+              --arg branch "${{ github.ref_name }}" \
+              --arg actor "${{ github.actor }}" \
+              --arg run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --arg workflow "${{ github.workflow }}" \
+              '{text: ("❌ *" + $workflow + "* failed on `" + $repo + "` (`" + $branch + "`) by " + $actor + "\n<" + $run_url + "|View run>")}')"
+
+  pipeline-report:
+    name: Pipeline Performance Report
+    runs-on: ubuntu-latest
+    needs:
+      - setup-frontend
+      - setup-backend
+      - build-frontend
+      - test-frontend
+      - test-backend-unit
+      - test-backend-checkout
+      - test-backend-security-edge
+      - security-frontend
+      - security-backend
+      - build-docker
+      - deploy-green
+      - health-check
+      - promote
+    if: always()
+    steps:
+      - name: Write performance summary
+        run: |
+          {
+            echo "## ShopEase Pipeline Report"
+            echo ""
+            echo "| Stage | Job | Result |"
+            echo "|-------|-----|--------|"
+            echo "| Setup | setup-frontend | ${{ needs.setup-frontend.result }} |"
+            echo "| Setup | setup-backend | ${{ needs.setup-backend.result }} |"
+            echo "| Build | build-frontend | ${{ needs.build-frontend.result }} |"
+            echo "| Build | build-docker | ${{ needs.build-docker.result }} |"
+            echo "| Test | test-frontend | ${{ needs.test-frontend.result }} |"
+            echo "| Test | test-backend-unit | ${{ needs.test-backend-unit.result }} |"
+            echo "| Test | test-backend-checkout | ${{ needs.test-backend-checkout.result }} |"
+            echo "| Test | test-backend-security-edge | ${{ needs.test-backend-security-edge.result }} |"
+            echo "| Security | security-frontend | ${{ needs.security-frontend.result }} |"
+            echo "| Security | security-backend | ${{ needs.security-backend.result }} |"
+            echo "| Deploy | deploy-green | ${{ needs.deploy-green.result }} |"
+            echo "| Deploy | health-check | ${{ needs.health-check.result }} |"
+            echo "| Deploy | promote | ${{ needs.promote.result }} |"
+            echo ""
+            echo "### Optimizations applied"
+            echo "- Shared \`node_modules\` + \`.venv\` caching across jobs"
+            echo "- 4 parallel test jobs (frontend + 3 backend shards by pytest marker)"
+            echo "- Security scans run parallel to tests (npm audit, Bandit, pip-audit, Snyk)"
+            echo "- Docker GHA layer cache (\`scope=shopease-*\`)"
+            echo "- Blue-green deploy with health checks and automated rollback"
+            echo "- Concurrency cancel for superseded runs"
+            echo ""
+            echo "**Target:** ~50% faster vs. sequential build→test→deploy pipeline."
+            echo "See \`8_1_ecommerce/docs/CI_CD_WORKFLOW.md\` for full before/after documentation."
+          } >> "$GITHUB_STEP_SUMMARY"
