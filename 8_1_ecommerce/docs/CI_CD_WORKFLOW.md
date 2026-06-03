@@ -163,7 +163,8 @@ build-frontend  test-frontend  security-FE   test-unit  test-checkout  security-
 | Security | `security-backend` | tests | Bandit + pip-audit + Snyk |
 | Deploy | `deploy-green` | — | Deploy to green slot |
 | Deploy | `health-check` | — | Poll green URLs (12 retries × 5s) |
-| Deploy | `promote` | — | Promote to blue + GitHub Pages |
+| Deploy | `promote` | — | Promote to blue (production webhook) |
+| Deploy | `deploy-github-pages` | — | Publish frontend artifact to GitHub Pages |
 | Deploy | `rollback` | — | Auto-rollback if health fails |
 | Monitor | `notify-slack` | always() | Slack alert on any failure |
 | Monitor | `pipeline-report` | always() | Job results in Actions summary |
@@ -361,11 +362,18 @@ git commit -m "Add optimized ShopEase CI/CD pipeline"
 git push origin main
 ```
 
-### Step 2 — Enable GitHub Pages
+### Step 2 — Enable GitHub Pages (required)
+
+The `deploy-github-pages` job calls `actions/configure-pages@v4`. If Pages is not enabled, that step fails with **Get Pages site failed … HttpError: Not Found**.
 
 1. Go to **Settings → Pages** in the CursorAI1 repo.
-2. Set **Source** to **GitHub Actions** (not branch deploy).
-3. The `promote` job deploys the frontend artifact after health checks pass.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions** (not “Deploy from a branch”).
+3. Save (no branch/folder selection is needed for Actions-based deploys).
+4. Re-run the failed workflow (or push to `main` again).
+
+**Optional — enable Pages from the workflow:** add a repository secret `PAGES_ENABLEMENT_TOKEN` containing a fine-grained PAT (or classic PAT) with **Pages: Read and write** and **Administration: Read** on this repo. The workflow passes `enablement: true` to `configure-pages` when that secret is set.
+
+After Pages is enabled, the `deploy-github-pages` job uploads the `frontend-dist` artifact and deploys via `actions/deploy-pages@v4`.
 
 ### Step 3 — Configure GitHub Environments
 
@@ -503,6 +511,8 @@ If webhooks are not configured, deploy scripts log a message and exit successful
 | Slack not notified | Webhook not set or job skipped | Add `SLACK_WEBHOOK_URL`; check `notify-slack` job logs |
 | Cache not restoring | Lock file changed | Expected on dependency updates — first run rebuilds cache |
 | Tests pass locally, fail in CI | Missing venv / marker mismatch | Run `.venv/bin/pytest -m unit` etc. individually |
+| `configure-pages`: **Get Pages site failed** / **Not Found** | Pages not enabled or source is not **GitHub Actions** | [Step 2 — Enable GitHub Pages](#step-2--enable-github-pages-required); or add `PAGES_ENABLEMENT_TOKEN` secret |
+| Pages loads but assets 404 | Wrong Vite `base` for project Pages URL | CI sets `VITE_BASE=/<repo-name>/` (e.g. `/CursorAI1/`) on `npm run build` |
 
 ---
 
