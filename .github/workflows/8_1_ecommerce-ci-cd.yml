@@ -464,10 +464,14 @@ jobs:
       id-token: write
     steps:
       - name: Verify GitHub Pages (when not using auto-enable)
-        if: secrets.PAGES_ENABLEMENT_TOKEN == ''
         env:
+          PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ -n "$PAGES_ENABLEMENT_TOKEN" ]; then
+            echo "PAGES_ENABLEMENT_TOKEN set — skipping preflight (configure-pages will auto-enable if needed)."
+            exit 0
+          fi
           code=$(curl -sS -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
