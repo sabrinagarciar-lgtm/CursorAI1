@@ -228,6 +228,19 @@ cd "8_1_ecommerce testing/frontend"
 npm test
 ```
 
+### QA automation suite
+
+The [`qa-automation/`](qa-automation/) directory provides a full quality pipeline: Playwright E2E (Page Object Model), ESLint/Pylint, OWASP ZAP + Snyk, k6 load tests, and an HTML metrics dashboard.
+
+```bash
+cd qa-automation
+npm install && npx playwright install chromium
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements-qa.txt
+./scripts/run-all-qa.sh
+```
+
+See [**qa-automation/README.md**](qa-automation/README.md) for quality gates, CI integration, and script options.
+
 ---
 
 ## Test Results by Category

@@ -20,10 +20,11 @@ This repository holds **eight self-contained [Create React App](https://github.c
 | **6.8** | Social feed | **Feed** with **post cards**, like/comment/share/bookmark, **comment threads**, **composer**, **infinite scroll** (Intersection Observer). | [**Exercise 6.8 →**](exercise8/exercise8/README.md) |
 | **7.1 & 7.2** | Blog platform API | Flask REST API with **PostgreSQL**, **SQLAlchemy**, **JWT auth**, **Swagger UI**, **Redis caching**, Marshmallow schemas, rate limiting, and pytest coverage. | [**Exercise 7.1 & 7.2 →**](7_2blog-platform-api/README.md) |
 | **8.1** | E-commerce checkout | Full-stack **ShopEase** checkout: React + Vite frontend, Flask + SQLite backend, cart/discounts/payment flow, pytest + Vitest, Docker images. | [**Exercise 8.1 →**](8_1_ecommerce/README.md) |
+| **8.1 QA** | QA automation | **ShopEase** quality suite: Playwright E2E (Page Object Model), ESLint/Pylint, OWASP ZAP + Snyk, k6 performance, HTML metrics dashboard, `run-all-qa.sh`. | [**QA automation →**](8_1_ecommerce/qa-automation/README.md) |
 | **8.2** | E-commerce API tests | **ShopEase** extended with **JWT auth**, user/order CRUD, role-based access, rate limiting, and a comprehensive API pytest suite. | [**Exercise 8.2 →**](8_2/README.md) |
 | **CI/CD** | ShopEase pipeline | GitHub Actions workflow for **8.1**: parallel tests, dependency caching, security scans (Bandit, npm audit, Snyk), Docker + GHCR, blue-green deploy. | [**Workflow guide →**](8_1_ecommerce/docs/CI_CD_WORKFLOW.md) · [**Workflow YAML →**](.github/workflows/8_1_ecommerce-ci-cd.yml) |
 
-CRA rows (**6.1–6.8**) link to the **main app README** inside the nested folder (`exerciseN/exerciseN/README.md`). Full-stack projects (7.1 & 7.2, 8.1, 8.2) are at the repo root. See [**CI performance summary →**](8_1_ecommerce/docs/CI_PERFORMANCE.md) for pipeline benchmarks.
+CRA rows (**6.1–6.8**) link to the **main app README** inside the nested folder (`exerciseN/exerciseN/README.md`). Full-stack projects (7.1 & 7.2, 8.1, 8.2) are at the repo root. **8.1 QA** documents the [`qa-automation/`](8_1_ecommerce/qa-automation/) suite (unit, integration, E2E, security, performance, dashboard). See [**CI performance summary →**](8_1_ecommerce/docs/CI_PERFORMANCE.md) for pipeline benchmarks.
 
 ---
 
@@ -54,6 +55,20 @@ npm install && npm run dev
 ```
 
 See each project README for ports, test commands, and environment details.
+
+### ShopEase QA suite (8.1)
+
+With the app running (backend **5051**, frontend **5174**):
+
+```bash
+cd 8_1_ecommerce/qa-automation
+npm install && npx playwright install chromium
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements-qa.txt
+./scripts/run-all-qa.sh
+open results/dashboard.html
+```
+
+See [**QA automation README →**](8_1_ecommerce/qa-automation/README.md) for flags, quality gates, and CI integration.
 
 ---
 
