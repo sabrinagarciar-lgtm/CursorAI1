@@ -32,6 +32,18 @@ Complete documentation for the GitHub Actions pipeline that builds, tests, secur
 
 The pipeline runs on every change under `8_1_ecommerce/**` and skips unrelated monorepo changes.
 
+### When deploy jobs run (vs skipped)
+
+| Trigger | Build / test / security | Deploy green, health check, promote, GitHub Pages |
+|---------|-------------------------|-----------------------------------------------------|
+| **Pull request** to `main` | Runs | **Skipped** (by design — no production deploy from PRs) |
+| **Push** to `main` | Runs | Runs (if upstream jobs succeed) |
+| **workflow_dispatch** on `main` | Runs | Runs (same as push) |
+
+If deploy jobs show **Skipped** while build and tests are green, the run was almost certainly a **pull request** check, not a merge to `main`. Merge the PR (or push directly to `main`) to execute deploy.
+
+`build-docker` is also skipped on pull requests (`if: github.event_name != 'pull_request'`).
+
 ---
 
 ## Before: original pipeline (v1)
