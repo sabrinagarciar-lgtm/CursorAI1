@@ -166,6 +166,10 @@ run_reports() {
   log "Generating quality dashboard and metrics..."
   "$QA_ROOT/.venv/bin/python" "$QA_ROOT/reports/generate-report.py" || true
   "$QA_ROOT/.venv/bin/python" "$QA_ROOT/scripts/analyze-results.py" || true
+  log "Syncing QA assets into frontend dist (for /qa-dashboard route)..."
+  if [[ -d "$APP_ROOT/frontend/public" ]]; then
+    cd "$APP_ROOT/frontend" && npm run build --silent 2>/dev/null || npm run build
+  fi
 }
 
 # --- Main ---

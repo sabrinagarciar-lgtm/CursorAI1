@@ -254,12 +254,25 @@ def _recommendations(gates, coverage, eslint, security, k6) -> list[str]:
 
 def write_dashboard(metrics: dict) -> None:
     template = DASHBOARD_SRC.read_text(encoding="utf-8")
+    if "/*__METRICS_JSON__*/" not in template:
+        raise RuntimeError(
+            "dashboard.html template is missing /*__METRICS_JSON__*/ placeholder — restore reports/dashboard.html"
+        )
     payload = json.dumps(metrics, indent=2)
     injected = template.replace("/*__METRICS_JSON__*/", payload)
     DASHBOARD_OUT.parent.mkdir(parents=True, exist_ok=True)
     DASHBOARD_OUT.write_text(injected, encoding="utf-8")
-    # Also refresh source with latest metrics for offline open
-    DASHBOARD_SRC.write_text(injected, encoding="utf-8")
+
+    # Sync to frontend public assets for /qa-dashboard route
+    public_dir = QA_ROOT.parent / "frontend" / "public"
+    public_dir.mkdir(parents=True, exist_ok=True)
+    (public_dir / "qa-metrics.json").write_text(payload, encoding="utf-8")
+    (public_dir / "qa-dashboard.html").write_text(_fetch_dashboard_html(), encoding="utf-8")
+
+
+def _fetch_dashboard_html() -> str:
+    """Standalone dashboard that loads metrics from /qa-metrics.json (for Vite dev/preview)."""
+    return (DASHBOARD_SRC.parent / "dashboard-fetch.html").read_text(encoding="utf-8")
 
 
 def main() -> int:
