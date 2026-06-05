@@ -22,7 +22,10 @@ def app():
         {
             "TESTING": True,
             "DATABASE": db_path,
+            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
             "EMAIL_LOG_DIR": email_dir,
+            "RATE_LIMIT_ENABLED": False,
+            "CACHE_TYPE": "NullCache",
         }
     )
     yield application
@@ -38,4 +41,4 @@ def client(app):
 def api_base_url():
     import os
 
-    return os.environ.get("API_BASE_URL", "http://127.0.0.1:5051")
+    return os.environ.get("API_BASE_URL", "http://127.0.0.1:5060")

@@ -10,7 +10,7 @@ import { Rate, Trend } from "k6/metrics";
 const errorRate = new Rate("errors");
 const productsDuration = new Trend("products_duration", true);
 
-const BASE = __ENV.API_BASE_URL || "http://127.0.0.1:5051";
+const BASE = __ENV.API_BASE_URL || "http://127.0.0.1:5060";
 
 const thresholds = JSON.parse(open("./performance-thresholds.json"));
 const k6Thresholds = thresholds.k6?.thresholds || {
@@ -43,7 +43,9 @@ export default function () {
     "products status 200": (r) => r.status === 200,
     "products has catalog": (r) => {
       try {
-        return JSON.parse(r.body).length >= 1;
+        const body = JSON.parse(r.body);
+        const items = Array.isArray(body) ? body : body.items;
+        return items && items.length >= 1;
       } catch {
         return false;
       }

@@ -8,8 +8,8 @@ APP_ROOT="$(cd "$QA_ROOT/.." && pwd)"
 RESULTS="$QA_ROOT/results/security"
 mkdir -p "$RESULTS"
 
-TARGET_URL="${TARGET_URL:-http://127.0.0.1:5174}"
-API_URL="${API_BASE_URL:-http://127.0.0.1:5051}"
+TARGET_URL="${TARGET_URL:-http://127.0.0.1:5180}"
+API_URL="${API_BASE_URL:-http://127.0.0.1:5060}"
 SNYK_EXIT=0
 ZAP_EXIT=0
 BANDIT_EXIT=0

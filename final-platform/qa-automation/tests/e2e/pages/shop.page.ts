@@ -10,13 +10,13 @@ export class ShopPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.heading = page.getByRole("heading", { name: "Product Showcase" });
-    this.addToCartButtons = page.getByRole("button", { name: "Add to Cart" });
+    this.addToCartButtons = page.getByRole("button", { name: /add .+ to cart/i });
     this.viewCartLink = page.getByRole("link", { name: /View cart/i });
     this.toast = page.locator('[role="status"]');
   }
 
   async open(): Promise<void> {
-    await this.goto("/");
+    await this.goto("/shop");
     await this.heading.waitFor({ state: "visible", timeout: 15_000 });
   }
 

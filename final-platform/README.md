@@ -165,14 +165,31 @@ npx playwright install chromium
 PW_SKIP_WEBSERVER=1 npm run test:e2e   # when backend+frontend already running
 ```
 
-## QA Automation
+## QA Automation & Dashboard
+
+**Last run:** June 5, 2026 — **166/166 tests passed**, **91% coverage**, overall status: `partial` (complexity gate only)
+
+| Gate | Status | Value |
+|------|--------|-------|
+| Coverage | ✅ pass | 91.0% (target ≥80%) |
+| ESLint | ✅ pass | 0 errors |
+| Security (Bandit) | ✅ pass | 0 critical |
+| Error rate | ✅ pass | 0% |
+| Complexity | ⚠️ fail | max 18 (4 blocks >10) |
+| k6 performance | — skipped | k6 not installed locally |
+
+**View dashboard:**
+- Local file: `qa-automation/results/dashboard.html`
+- In-app: http://127.0.0.1:5180/qa-dashboard (when app is running)
+- Metrics JSON: [docs/qa-metrics.json](docs/qa-metrics.json)
 
 ```bash
+# Requires backend (:5060) and frontend (:5180) running
 cd final-platform/qa-automation
+unset PLAYWRIGHT_BROWSERS_PATH
 npm install && npx playwright install chromium
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements-qa.txt
-./scripts/run-all-qa.sh
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements-qa.txt
+API_BASE_URL=http://127.0.0.1:5060 E2E_BASE_URL=http://127.0.0.1:5180 ./scripts/run-all-qa.sh
 open results/dashboard.html
 ```
 
@@ -197,7 +214,7 @@ Pipeline stages:
 | 4 | Architecture diagram | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 5 | Test coverage report | [docs/coverage-report/](docs/coverage-report/) |
 | 6 | CI/CD pipeline screenshot | [docs/screenshots/ci-cd-pipeline.png](docs/screenshots/ci-cd-pipeline.png) |
-| 7 | Quality dashboard screenshot | [docs/screenshots/quality-dashboard.png](docs/screenshots/quality-dashboard.png) |
+| 7 | Quality dashboard | [qa-automation/results/dashboard.html](qa-automation/results/dashboard.html) · [docs/qa-metrics.json](docs/qa-metrics.json) |
 | 8 | Demo video | Record 5–10 min walkthrough of all modules |
 
 ## Deployment

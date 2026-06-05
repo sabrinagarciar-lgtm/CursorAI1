@@ -6,8 +6,8 @@ export default {
   ci: {
     collect: {
       url: [
-        process.env.E2E_BASE_URL || "http://127.0.0.1:5174/",
-        (process.env.E2E_BASE_URL || "http://127.0.0.1:5174/") + "cart",
+        process.env.E2E_BASE_URL || "http://127.0.0.1:5180/",
+        (process.env.E2E_BASE_URL || "http://127.0.0.1:5180/") + "cart",
       ],
       numberOfRuns: 2,
       settings: {

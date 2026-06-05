@@ -50,7 +50,7 @@ export function ShopPage() {
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
         <p className="font-semibold">Unable to load products</p>
         <p className="mt-1 text-sm">{error}</p>
-        <p className="mt-3 text-sm">Make sure the backend is running on port 5051.</p>
+        <p className="mt-3 text-sm">Make sure the backend is running on port 5060.</p>
       </div>
     );
   }

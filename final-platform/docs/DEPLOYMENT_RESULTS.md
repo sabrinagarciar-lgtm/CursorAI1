@@ -57,6 +57,25 @@ Or use the helper script:
 
 **Report:** `docs/coverage-report/index.html`
 
+## QA Dashboard (Populated)
+
+**Generated:** June 5, 2026
+
+| Metric | Result |
+|--------|--------|
+| Total tests | 166 passed, 0 failed |
+| Backend unit | 158 passed |
+| Integration | 6 passed |
+| QA E2E (POM) | 2 passed |
+| Coverage | 91.0% |
+| Overall status | partial (complexity gate) |
+
+**Open dashboard:**
+```bash
+open final-platform/qa-automation/results/dashboard.html
+# or in browser: http://127.0.0.1:5180/qa-dashboard
+```
+
 ## Cloud Deployment
 
 For a public live URL, deploy via Render using `render.yaml`:

@@ -13,7 +13,7 @@ if [[ ! -d .venv ]]; then
   .venv/bin/pip install -q -r ../qa-automation/requirements-qa.txt
 fi
 
-.venv/bin/pytest tests/test_unit.py \
+.venv/bin/pytest tests/ \
   --cov=app \
   --cov-report=xml:"$RESULTS/backend-unit-coverage.xml" \
   --cov-report=term \

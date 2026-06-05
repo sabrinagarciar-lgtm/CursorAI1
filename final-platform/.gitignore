@@ -11,7 +11,9 @@ frontend/playwright-report/
 frontend/test-results/
 qa-automation/node_modules/
 qa-automation/.venv/
-qa-automation/results/
+qa-automation/results/*
+!qa-automation/results/dashboard.html
+!qa-automation/results/metrics.json
 docs/playwright-results/*.png
 docs/playwright-results/**/error-context.md
 frontend/test-results/

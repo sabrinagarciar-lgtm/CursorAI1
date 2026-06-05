@@ -218,7 +218,7 @@ def build_metrics() -> dict:
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "project": "ShopEase 8_1 E-Commerce",
+        "project": "CursorHub Final Platform",
         "targets": targets,
         "gates": gates,
         "overall_status": overall,
