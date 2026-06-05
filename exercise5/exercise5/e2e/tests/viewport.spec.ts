@@ -108,6 +108,11 @@ test.describe('Responsive layout & cross-viewport behaviour', () => {
   });
 
   /* ── grid layout adapts ──────────────────────────────────────────── */
+  test('priority filter controls are visible on every viewport', async ({ page }) => {
+    await expect(page.getByText('Priority', { exact: true })).toBeVisible();
+    await expect(catalog.priorityFilter('High')).toBeVisible();
+  });
+
   test('product grid renders without overflow', async ({ page }) => {
     const grid = page.locator('[role="list"]');
     await expect(grid).toBeVisible();

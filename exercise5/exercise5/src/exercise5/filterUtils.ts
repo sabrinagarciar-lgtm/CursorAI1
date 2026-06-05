@@ -1,4 +1,4 @@
-import type { Product, ProductCategory } from '../types/product';
+import type { Product, ProductCategory, ProductPriority } from '../types/product';
 
 export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating-desc' | 'title-asc';
 
@@ -38,6 +38,14 @@ export function matchesPriceBrackets(
   return brackets.some((b) => PRICE_BRACKET_MATCHERS[b](product.price));
 }
 
+export function matchesPriorities(
+  product: Product,
+  selected: ProductPriority[],
+): boolean {
+  if (selected.length === 0) return true;
+  return selected.includes(product.priority);
+}
+
 export function sortProducts(products: Product[], sort: SortOption): Product[] {
   const copy = [...products];
   switch (sort) {
@@ -61,13 +69,15 @@ export function applyProductFilters(
   query: string,
   categories: ProductCategory[],
   priceBrackets: PriceBracket[],
+  priorities: ProductPriority[],
   sort: SortOption,
 ): Product[] {
   const filtered = products.filter(
     (p) =>
       matchesSearch(p, query) &&
       matchesCategories(p, categories) &&
-      matchesPriceBrackets(p, priceBrackets),
+      matchesPriceBrackets(p, priceBrackets) &&
+      matchesPriorities(p, priorities),
   );
   return sortProducts(filtered, sort);
 }

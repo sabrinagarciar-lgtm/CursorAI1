@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ProductCard from '../components/ProductCard';
-import type { Product, ProductCategory } from '../types/product';
+import type { Product, ProductCategory, ProductPriority } from '../types/product';
 import {
   applyProductFilters,
   type PriceBracket,
@@ -32,6 +32,8 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'title-asc', label: 'Name: A to Z' },
 ];
 
+const PRIORITY_OPTIONS: ProductPriority[] = ['High', 'Medium', 'Low'];
+
 export interface ProductCatalogProps {
   /** Defaults to the shared catalog (Exercise 1 products plus extras). */
   products?: Product[];
@@ -45,6 +47,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [query, setQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
   const [selectedPriceBrackets, setSelectedPriceBrackets] = useState<PriceBracket[]>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<ProductPriority[]>([]);
   const [sort, setSort] = useState<SortOption>('featured');
   const [page, setPage] = useState(1);
   const [cartItems, setCartItems] = useState<string[]>([]);
@@ -56,9 +59,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         query,
         selectedCategories,
         selectedPriceBrackets,
+        selectedPriorities,
         sort,
       ),
-    [products, query, selectedCategories, selectedPriceBrackets, sort],
+    [products, query, selectedCategories, selectedPriceBrackets, selectedPriorities, sort],
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredSorted.length / pageSize));
@@ -70,7 +74,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   useEffect(() => {
     setPage(1);
-  }, [query, selectedCategories, selectedPriceBrackets, sort]);
+  }, [query, selectedCategories, selectedPriceBrackets, selectedPriorities, sort]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -94,15 +98,23 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     );
   };
 
+  const togglePriority = (p: ProductPriority) => {
+    setSelectedPriorities((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p],
+    );
+  };
+
   const hasActiveFilters =
     query.trim().length > 0 ||
     selectedCategories.length > 0 ||
-    selectedPriceBrackets.length > 0;
+    selectedPriceBrackets.length > 0 ||
+    selectedPriorities.length > 0;
 
   const clearAllFilters = () => {
     setQuery('');
     setSelectedCategories([]);
     setSelectedPriceBrackets([]);
+    setSelectedPriorities([]);
     setSort('featured');
     setPage(1);
   };
@@ -176,7 +188,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             <fieldset className="min-w-0">
               <legend className="text-sm font-semibold text-slate-800">Category</legend>
               <div className="mt-2 flex flex-wrap gap-3">
@@ -213,6 +225,29 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="min-w-0 md:col-span-2 xl:col-span-1">
+              <legend className="text-sm font-semibold text-slate-800">Priority</legend>
+              <p className="mt-1 text-xs text-slate-500">
+                Merchandising tier (OR when multiple selected)
+              </p>
+              <div className="mt-2 flex flex-wrap gap-3">
+                {PRIORITY_OPTIONS.map((p) => (
+                  <label
+                    key={p}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                  >
+                    <input
+                      type="checkbox"
+                      data-testid={`filter-priority-${p}`}
+                      checked={selectedPriorities.includes(p)}
+                      onChange={() => togglePriority(p)}
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    {p}
                   </label>
                 ))}
               </div>

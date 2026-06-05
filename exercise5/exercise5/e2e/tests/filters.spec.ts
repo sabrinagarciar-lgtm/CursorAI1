@@ -205,6 +205,11 @@ test.describe('Filters', () => {
       await expect(catalog.clearFiltersBtn).toBeEnabled();
     });
 
+    test('clear button enables when priority filter is active', async () => {
+      await catalog.priorityFilter('Medium').check();
+      await expect(catalog.clearFiltersBtn).toBeEnabled();
+    });
+
     test('clear all after search restores full catalog', async () => {
       await catalog.search('running');
       await catalog.expectResultCount('1 product found');
@@ -233,16 +238,18 @@ test.describe('Filters', () => {
       await catalog.expectSortValue('featured');
     });
 
-    test('clear all after complex state (search + category + price)', async () => {
+    test('clear all after complex state (search + category + price + priority)', async () => {
       await catalog.search('running');
       await catalog.categoryFilter('Sports').check();
       await catalog.priceFilter('over100').check();
+      await catalog.priorityFilter('High').check();
 
       await catalog.clearAll();
 
       await catalog.expectSearchValue('');
       await catalog.expectCategoryChecked('Sports', false);
       await expect(catalog.priceFilter('over100')).not.toBeChecked();
+      await catalog.expectPriorityChecked('High', false);
       await catalog.expectResultCount('18 products found');
       await catalog.expectSortValue('featured');
     });

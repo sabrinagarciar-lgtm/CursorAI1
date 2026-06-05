@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+# Exercise 1 — E-commerce Product Card
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A Create React App demo that showcases a reusable **ProductCard** for an e-commerce-style UI: product image, title, description, price, star rating, and an **Add to Cart** action. Props are typed with **TypeScript**, layout and motion use **Tailwind CSS**, and the layout is responsive with hover-focused polish and accessibility-minded markup.
 
-## Available Scripts
+## Purpose
 
-In the project directory, you can run:
+- **ProductCard** — Presents product media, copy, formatted price, and a primary CTA.
+- **TypeScript** — Shared types for products, card props, and ratings (`src/types/product.ts`).
+- **Tailwind CSS** — Utility-first styling, responsive breakpoints, transitions, and hover/focus states.
+- **Motion & hover** — Card lift (`translate` + shadow), image scale on hover, smooth transitions on interactive elements.
+- **Accessibility** — Semantic `<article>` with `aria-labelledby`, descriptive image `alt` text, keyboard-focus rings on the card and button, `aria-label` on **Add to Cart**, star rating exposed as `role="img"` with a text summary, cart count as `aria-live="polite"`, and [schema.org](https://schema.org/) `Product` / `Offer` hints where appropriate.
 
-### `npm start`
+The home view is **`ProductDemo`**: a responsive grid of sample products backed by static demo data.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Requirements
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Node.js** 18+ (LTS recommended) and **npm**.
 
-### `npm test`
+## Setup
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. From this directory (`exercise1/exercise1`):
 
-### `npm run build`
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   `react-scripts@5` declares an optional peer range for TypeScript 3–4; this project uses TypeScript 5, so `--legacy-peer-deps` avoids an install-time peer conflict. The app builds and runs as expected.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Start the development server:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   ```bash
+   npm start
+   ```
 
-### `npm run eject`
+   Open [http://localhost:3000](http://localhost:3000). The demo loads automatically (`App` renders `ProductDemo`).
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Optional: avoid launching a browser from the CLI:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```bash
+   BROWSER=none npm start
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. Other scripts:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   | Command        | Description                    |
+   | -------------- | ------------------------------ |
+   | `npm test`     | Jest / React Testing Library   |
+   | `npm run build` | Production build to `build/` |
 
-## Learn More
+### Troubleshooting
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **`EMFILE: too many open files` (watch mode)** — On macOS, file watcher limits can be tight. In the same terminal, try `ulimit -n 10240` before `npm start`, or see [Create React App — troubleshooting](https://facebook.github.io/create-react-app/docs/troubleshooting).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Project structure
 
-### Code Splitting
+```text
+.                             ← Create React App root (this folder)
+├── docs/
+│   └── demo-screenshot.png   ← screenshot of the Product Showcase demo
+├── public/
+│   ├── index.html
+│   └── …
+├── src/
+│   ├── components/
+│   │   ├── ProductCard.tsx   # Card layout, CTA, image fallback
+│   │   ├── RatingStars.tsx   # Accessible star display + partial star
+│   │   └── TaskList.tsx
+│   ├── pages/
+│   │   └── ProductDemo.tsx   # Demo grid + cart state
+│   ├── types/
+│   │   └── product.ts        # Product, ProductCardProps, RatingStarsProps
+│   ├── App.js                # Entry view → ProductDemo
+│   ├── App.css
+│   ├── index.js
+│   └── index.css             # Tailwind directives
+├── package.json
+├── tailwind.config.js
+├── postcss.config.js
+└── tsconfig.json
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+One level up, the enclosing **exercise 1** folder has a short README that links into this project.
 
-### Analyzing the Bundle Size
+## Demo screenshot
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Product Showcase page at `http://localhost:3000`:
 
-### Making a Progressive Web App
+![Product Showcase demo — responsive grid of ProductCard components with ratings and Add to Cart](docs/demo-screenshot.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Additional CRA topics (testing, deployment, etc.) remain documented in the [CRA documentation](https://facebook.github.io/create-react-app/docs/getting-started).

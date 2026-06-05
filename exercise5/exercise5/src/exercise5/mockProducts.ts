@@ -12,6 +12,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.5,
     reviewCount: 2847,
     category: 'Electronics',
+    priority: 'High',
   },
   {
     id: '2',
@@ -23,6 +24,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 562,
     category: 'Accessories',
+    priority: 'High',
   },
   {
     id: '3',
@@ -34,6 +36,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.2,
     reviewCount: 1203,
     category: 'Apparel',
+    priority: 'Low',
   },
   {
     id: '4',
@@ -45,6 +48,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.6,
     reviewCount: 1892,
     category: 'Electronics',
+    priority: 'Low',
   },
   {
     id: '5',
@@ -56,6 +60,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 423,
     category: 'Home',
+    priority: 'Medium',
   },
   {
     id: '6',
@@ -67,6 +72,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.4,
     reviewCount: 3156,
     category: 'Sports',
+    priority: 'High',
   },
   {
     id: '7',
@@ -77,6 +83,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.3,
     reviewCount: 812,
     category: 'Sports',
+    priority: 'Low',
   },
   {
     id: '8',
@@ -87,6 +94,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.5,
     reviewCount: 640,
     category: 'Home',
+    priority: 'Medium',
   },
   {
     id: '9',
@@ -97,6 +105,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.6,
     reviewCount: 1104,
     category: 'Electronics',
+    priority: 'Low',
   },
   {
     id: '10',
@@ -107,6 +116,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 956,
     category: 'Accessories',
+    priority: 'Medium',
   },
   {
     id: '11',
@@ -117,6 +127,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.4,
     reviewCount: 702,
     category: 'Accessories',
+    priority: 'Medium',
   },
   {
     id: '12',
@@ -127,6 +138,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.5,
     reviewCount: 1330,
     category: 'Apparel',
+    priority: 'Medium',
   },
   {
     id: '13',
@@ -137,6 +149,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 2411,
     category: 'Sports',
+    priority: 'Low',
   },
   {
     id: '14',
@@ -147,6 +160,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.5,
     reviewCount: 1788,
     category: 'Electronics',
+    priority: 'High',
   },
   {
     id: '15',
@@ -157,6 +171,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.6,
     reviewCount: 514,
     category: 'Home',
+    priority: 'Medium',
   },
   {
     id: '16',
@@ -167,6 +182,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.2,
     reviewCount: 887,
     category: 'Apparel',
+    priority: 'Low',
   },
   {
     id: '17',
@@ -177,6 +193,7 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.1,
     reviewCount: 2204,
     category: 'Electronics',
+    priority: 'High',
   },
   {
     id: '18',
@@ -187,5 +204,6 @@ export const CATALOG_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 366,
     category: 'Home',
+    priority: 'High',
   },
 ];

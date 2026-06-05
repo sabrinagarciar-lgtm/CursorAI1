@@ -56,6 +56,10 @@ export class ProductCatalogPage {
     return this.page.getByTestId(`filter-price-${bracket}`);
   }
 
+  priorityFilter(priority: 'High' | 'Medium' | 'Low'): Locator {
+    return this.page.getByTestId(`filter-priority-${priority}`);
+  }
+
   /* ── product cards ─────────────────────────────────────────────── */
   productCardById(id: string): Locator {
     return this.page.getByTestId(`product-card-${id}`);
@@ -136,6 +140,15 @@ export class ProductCatalogPage {
       await expect(checkbox).toBeChecked();
     } else {
       await expect(checkbox).not.toBeChecked();
+    }
+  }
+
+  async expectPriorityChecked(priority: 'High' | 'Medium' | 'Low', checked = true) {
+    const box = this.priorityFilter(priority);
+    if (checked) {
+      await expect(box).toBeChecked();
+    } else {
+      await expect(box).not.toBeChecked();
     }
   }
 

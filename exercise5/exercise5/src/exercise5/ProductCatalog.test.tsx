@@ -65,6 +65,20 @@ describe('ProductCatalog', () => {
     expect(screen.getByTestId('sort-select')).toHaveValue('featured');
   });
 
+  it('apply priority filter restricts results', async () => {
+    render(<ProductCatalog />);
+
+    await userEvent.click(screen.getByTestId('filter-priority-High'));
+
+    expect(screen.getByTestId('result-count')).toHaveTextContent(/6 products/);
+    expect(
+      screen.getByRole('heading', { name: /Wireless Bluetooth Headphones/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /Organic Cotton T-Shirt/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it('pagination navigates between pages', async () => {
     render(<ProductCatalog />);
 

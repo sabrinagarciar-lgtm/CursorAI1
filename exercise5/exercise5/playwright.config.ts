@@ -23,6 +23,16 @@ export default defineConfig({
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
+
+  webServer: {
+    command: 'PORT=3010 BROWSER=none npm start',
+    url: 'http://localhost:3010',
+    reuseExistingServer: !process.env.CI,
+    timeout: 180_000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
+
   use: {
     baseURL: 'http://localhost:3010',
     headless: true,
