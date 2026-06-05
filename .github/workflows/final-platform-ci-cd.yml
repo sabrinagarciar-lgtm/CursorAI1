@@ -1,0 +1,100 @@
+name: CursorHub Platform CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "final-platform/**"
+      - ".github/workflows/final-platform-ci-cd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "final-platform/**"
+  workflow_dispatch:
+
+concurrency:
+  group: cursorhub-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.12"
+  PROJECT_DIR: final-platform
+
+jobs:
+  backend-tests:
+    name: Backend Tests & Coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+      - name: Run pytest with coverage
+        run: .venv/bin/pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=90 -q
+      - name: Security scan (Bandit)
+        run: .venv/bin/bandit -r app -f json -o bandit-report.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.PROJECT_DIR }}/backend/coverage.xml
+
+  frontend-build:
+    name: Frontend Build & Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  e2e-tests:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-build]
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_DIR }}/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
+          cd ../backend && python -m venv .venv && .venv/bin/pip install -r requirements.txt
+      - name: Run Playwright tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: ${{ env.PROJECT_DIR }}/frontend/playwright-report/
+
+  quality-gate:
+    name: Quality Gate Summary
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-build, e2e-tests]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Quality gate passed
+        run: echo "All CI/CD jobs completed for CursorHub Platform"

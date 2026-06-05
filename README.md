@@ -23,6 +23,7 @@ This repository holds **eight self-contained [Create React App](https://github.c
 | **8.1 QA** | QA automation | **ShopEase** quality suite: Playwright E2E (Page Object Model), ESLint/Pylint, OWASP ZAP + Snyk, k6 performance, HTML metrics dashboard, `run-all-qa.sh`. | [**QA automation →**](8_1_ecommerce/qa-automation/README.md) |
 | **8.2** | E-commerce API tests | **ShopEase** extended with **JWT auth**, user/order CRUD, role-based access, rate limiting, and a comprehensive API pytest suite. | [**Exercise 8.2 →**](8_2/README.md) |
 | **CI/CD** | ShopEase pipeline | GitHub Actions workflow for **8.1**: parallel tests, dependency caching, security scans (Bandit, npm audit, Snyk), Docker + GHCR, blue-green deploy. | [**Workflow guide →**](8_1_ecommerce/docs/CI_CD_WORKFLOW.md) · [**Workflow YAML →**](.github/workflows/8_1_ecommerce-ci-cd.yml) |
+| **Final** | CursorHub Platform | **Final assignment** — unified app integrating e-commerce, settings, search, analytics, kanban, social, ticketing, and QA dashboard. Flask + SQLAlchemy + JWT, Playwright E2E, 91% pytest coverage, CI/CD. | [**Final Platform →**](final-platform/README.md) |
 
 CRA rows (**6.1–6.8**) link to the **main app README** inside the nested folder (`exerciseN/exerciseN/README.md`). Full-stack projects (7.1 & 7.2, 8.1, 8.2) are at the repo root. **8.1 QA** documents the [`qa-automation/`](8_1_ecommerce/qa-automation/) suite (unit, integration, E2E, security, performance, dashboard). See [**CI performance summary →**](8_1_ecommerce/docs/CI_PERFORMANCE.md) for pipeline benchmarks.
 

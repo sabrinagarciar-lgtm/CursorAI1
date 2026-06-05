@@ -1,0 +1,10 @@
+[run]
+source = app
+omit =
+    app/tasks/*
+    */__init__.py
+
+[report]
+precision = 1
+show_missing = True
+skip_covered = False

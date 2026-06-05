@@ -1,0 +1,14 @@
+backend/.venv/
+backend/platform.db
+backend/logs/
+backend/__pycache__/
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+qa-automation/node_modules/
+qa-automation/.venv/
+qa-automation/results/

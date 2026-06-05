@@ -1,0 +1,30 @@
+[MASTER]
+init-hook='import sys; sys.path.insert(0, "../../backend")'
+jobs=0
+py-version=3.12
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    import-outside-toplevel
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=8
+max-attributes=12
+max-branches=12
+max-locals=20
+max-statements=50
+max-complexity=10
+
+[TYPECHECK]
+generated-members=REQUEST,SESSION,g
+
+[REPORTS]
+output-format=json
+score=yes

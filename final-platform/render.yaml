@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: cursorhub-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CACHE_TYPE
+        value: SimpleCache
+
+  - type: web
+    name: cursorhub-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://cursorhub-api.onrender.com/api/*

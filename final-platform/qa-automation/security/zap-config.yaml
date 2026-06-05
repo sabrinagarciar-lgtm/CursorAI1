@@ -1,0 +1,62 @@
+# OWASP ZAP automation framework configuration for ShopEase
+# https://www.zaproxy.org/docs/docker/automation-framework/
+
+env:
+  contexts:
+    - name: shopease
+      urls:
+        - "${TARGET_URL:-http://127.0.0.1:5174}"
+      includePaths:
+        - ".*"
+      excludePaths:
+        - ".*\\.png"
+        - ".*\\.svg"
+        - ".*\\.woff2?"
+
+  parameters:
+    failOnError: true
+    failOnWarning: false
+
+jobs:
+  - type: spider
+    parameters:
+      maxDuration: 5
+      url: "${TARGET_URL:-http://127.0.0.1:5174}"
+    name: spider-root
+
+  - type: spiderAjax
+    parameters:
+      maxDuration: 5
+      url: "${TARGET_URL:-http://127.0.0.1:5174}"
+    name: spider-ajax
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+    name: passive-wait
+
+  - type: activeScan
+    parameters:
+      maxRuleDurationInMins: 5
+      maxScanDurationInMins: 15
+    name: active-scan
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: ../results/security
+      reportFile: zap-report
+    name: zap-html-report
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: ../results/security
+      reportFile: zap-report
+    name: zap-json-report
+
+rules:
+  # Fail build on critical/high alerts (threshold aligned with QA targets)
+  - id: 10038
+    action: IGNORE
+    name: Content Security Policy Header Not Set

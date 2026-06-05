@@ -1,0 +1,39 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    ports:
+      - "5060:5060"
+    environment:
+      - REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - CACHE_TYPE=RedisCache
+    depends_on:
+      - redis
+    volumes:
+      - backend-data:/app/data
+
+  celery-worker:
+    build: ./backend
+    command: celery -A app.extensions.celery_app worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - redis
+      - backend
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5180:5180"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
