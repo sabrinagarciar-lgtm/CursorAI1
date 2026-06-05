@@ -4,6 +4,52 @@ Unified full-stack application integrating all course exercises into a single de
 
 **Repository:** [github.com/sabrinagarciar-lgtm/CursorAI1/final-platform](https://github.com/sabrinagarciar-lgtm/CursorAI1/tree/main/final-platform)
 
+## Live Demo (Local Deployment)
+
+| Service | URL | Status |
+|---------|-----|--------|
+| **Frontend** | http://127.0.0.1:5180 | Production build (`vite preview`) |
+| **Backend API** | http://127.0.0.1:5060 | Flask + health check at `/healthz` |
+
+Start both with:
+
+```bash
+./final-platform/scripts/deploy-local.sh
+```
+
+Full deployment & test report: [docs/DEPLOYMENT_RESULTS.md](docs/DEPLOYMENT_RESULTS.md)
+
+## Test Results (Verified June 5, 2026)
+
+### Playwright E2E — 9/9 passed ✅
+
+| Test | Result |
+|------|--------|
+| Home page feature modules | ✅ 138ms |
+| Shop page loads products | ✅ 130ms |
+| Product search filters | ✅ 160ms |
+| Settings panel tabs | ✅ 113ms |
+| Analytics dashboard | ✅ 146ms |
+| Kanban board columns | ✅ 139ms |
+| Social feed | ✅ 125ms |
+| Ticket creation | ✅ 196ms |
+| Navigation between modules | ✅ 252ms |
+
+```bash
+# Run E2E (requires deployed app or auto-starts servers)
+./final-platform/scripts/run-e2e.sh
+```
+
+Report: [docs/playwright-results/report.json](docs/playwright-results/report.json)
+
+### Backend pytest — 158/158 passed, 91% coverage ✅
+
+```bash
+cd final-platform/backend && .venv/bin/pytest --cov=app --cov-fail-under=90
+```
+
+Report: [docs/coverage-report/index.html](docs/coverage-report/index.html)
+
 ## Integrated Features
 
 | Module | Source Exercise | Route |
@@ -104,9 +150,19 @@ npm test
 ### E2E (Playwright)
 
 ```bash
+# One-shot (installs browsers, runs against live or auto-started servers)
+cd final-platform
+unset PLAYWRIGHT_BROWSERS_PATH   # required in Cursor/sandbox environments
+./scripts/run-e2e.sh
+```
+
+Or manually:
+
+```bash
 cd final-platform/frontend
+unset PLAYWRIGHT_BROWSERS_PATH
 npx playwright install chromium
-npm run test:e2e
+PW_SKIP_WEBSERVER=1 npm run test:e2e   # when backend+frontend already running
 ```
 
 ## QA Automation
@@ -136,7 +192,7 @@ Pipeline stages:
 | # | Deliverable | Location |
 |---|-------------|----------|
 | 1 | GitHub repository | `CursorAI1/final-platform/` |
-| 2 | Live demo URL | See [Deployment](#deployment) |
+| 2 | Live demo URL | http://127.0.0.1:5180 (local) · [Cloud deploy](#deployment) |
 | 3 | README + setup | This file |
 | 4 | Architecture diagram | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 5 | Test coverage report | [docs/coverage-report/](docs/coverage-report/) |
@@ -152,7 +208,9 @@ Pipeline stages:
 2. Create a **Static Site** for `final-platform/frontend/dist` after `npm run build`
 3. Set environment variables: `JWT_SECRET`, `REDIS_URL`, `CELERY_BROKER_URL`
 
-**Live demo:** Deploy to Render/Railway and update this README with your URL.
+**Local demo (verified):** http://127.0.0.1:5180 with API at http://127.0.0.1:5060
+
+**Cloud deploy:** Use Render blueprint below, then update this README with your public URL.
 
 Example Render blueprint:
 

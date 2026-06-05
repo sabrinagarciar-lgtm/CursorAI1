@@ -14,4 +14,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 5180,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:5060",
+        changeOrigin: true,
+      },
+    },
+  },
 });

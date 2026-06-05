@@ -12,3 +12,6 @@ frontend/test-results/
 qa-automation/node_modules/
 qa-automation/.venv/
 qa-automation/results/
+docs/playwright-results/*.png
+docs/playwright-results/**/error-context.md
+frontend/test-results/

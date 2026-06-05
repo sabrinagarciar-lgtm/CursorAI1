@@ -13,18 +13,20 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: [
-    {
-      command: "cd ../backend && python run.py",
-      url: "http://127.0.0.1:5060/healthz",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-    },
-    {
-      command: "npm run dev",
-      url: "http://127.0.0.1:5180",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-    },
-  ],
+  webServer: process.env.PW_SKIP_WEBSERVER
+    ? undefined
+    : [
+        {
+          command: "cd ../backend && .venv/bin/python run.py",
+          url: "http://127.0.0.1:5060/healthz",
+          reuseExistingServer: true,
+          timeout: 120000,
+        },
+        {
+          command: "npm run preview -- --host 127.0.0.1 --port 5180",
+          url: "http://127.0.0.1:5180",
+          reuseExistingServer: true,
+          timeout: 120000,
+        },
+      ],
 });

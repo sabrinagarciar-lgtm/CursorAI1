@@ -57,9 +57,10 @@ test.describe("CursorHub Platform E2E", () => {
 
   test("navigation between modules", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Analytics" }).click();
+    const nav = page.getByRole("navigation");
+    await nav.getByRole("link", { name: "Analytics", exact: true }).click();
     await expect(page).toHaveURL(/analytics/);
-    await page.getByRole("link", { name: "Kanban" }).click();
+    await nav.getByRole("link", { name: "Kanban", exact: true }).click();
     await expect(page).toHaveURL(/kanban/);
   });
 });
