@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
@@ -15,20 +16,20 @@ import { OrdersPage } from "./pages/OrdersPage";
 import { QADashboardPage } from "./pages/QADashboardPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { ShopPage } from "./pages/ShopPage";
 import { SocialPage } from "./pages/SocialPage";
 import { TicketsPage } from "./pages/TicketsPage";
 
 export function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="shop" element={<ShopPage />} />
-              <Route path="search" element={<SearchPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="shop" element={<Navigate to="/search" replace />} />
+                <Route path="search" element={<SearchPage />} />
               <Route path="cart" element={<CartPage />} />
               <Route path="checkout" element={<CheckoutPage />} />
               <Route path="confirmation/:orderId" element={<ConfirmationPage />} />
@@ -36,7 +37,14 @@ export function App() {
               <Route path="kanban" element={<KanbanPage />} />
               <Route path="social" element={<SocialPage />} />
               <Route path="tickets" element={<TicketsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route
+                path="settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="qa-dashboard" element={<QADashboardPage />} />
               <Route path="login" element={<LoginPage />} />
               <Route
@@ -50,8 +58,9 @@ export function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
-        </BrowserRouter>
-      </CartProvider>
-    </AuthProvider>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

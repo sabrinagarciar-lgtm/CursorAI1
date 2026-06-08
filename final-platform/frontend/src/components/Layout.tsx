@@ -7,13 +7,12 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
     "rounded-lg px-2.5 py-2 text-sm font-medium transition-colors whitespace-nowrap",
     isActive
-      ? "bg-indigo-100 text-indigo-700"
-      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100",
   ].join(" ");
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", end: true },
-  { to: "/shop", label: "Shop" },
   { to: "/search", label: "Search" },
   { to: "/cart", label: "Cart" },
   { to: "/analytics", label: "Analytics" },
@@ -29,16 +28,16 @@ export function Layout() {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100">
-      <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white">
               CH
             </span>
             <div>
-              <p className="text-lg font-bold tracking-tight text-slate-900">CursorHub</p>
-              <p className="text-xs text-slate-500">Integrated platform</p>
+              <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">CursorHub</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Integrated platform</p>
             </div>
           </Link>
 
@@ -60,13 +59,13 @@ export function Layout() {
             )}
             {isAuthenticated ? (
               <>
-                <span className="hidden text-sm text-slate-600 lg:inline">
+                <span className="hidden text-sm text-slate-600 dark:text-slate-400 lg:inline">
                   {user?.name}
                 </span>
                 <button
                   type="button"
                   onClick={logout}
-                  className="rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  className="rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Sign out
                 </button>

@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import {
+  defaultSettingsForUser,
+  loadUserSettings,
+  saveUserSettings,
+} from '../../lib/userSettings';
+import type { ThemePreference } from '../../lib/theme';
 import { SelectField, TextAreaField, TextField } from './form';
 import { SettingsTabId, SettingsTabs } from './SettingsTabs';
 import { ToggleSwitch } from './ToggleSwitch';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type { ThemePreference };
 
 export type SettingsFormValues = {
   profile: {
@@ -30,51 +38,8 @@ export type SettingsFormValues = {
   };
 };
 
-const INITIAL_VALUES: SettingsFormValues = {
-  profile: {
-    displayName: 'Alex Rivera',
-    email: 'alex@example.com',
-    bio: '',
-    timezone: 'america-los_angeles',
-  },
-  notifications: {
-    emailDigest: true,
-    pushAlerts: false,
-    marketing: false,
-    digestFrequency: 'weekly',
-  },
-  privacy: {
-    profileVisibility: 'signed-in',
-    discoverable: true,
-    shareUsage: false,
-  },
-  appearance: {
-    theme: 'system',
-    density: 'comfortable',
-    reducedMotion: false,
-  },
-};
-
 function cloneValues(v: SettingsFormValues): SettingsFormValues {
   return structuredClone(v);
-}
-
-function applyThemeClass(mode: ThemePreference) {
-  const root = document.documentElement;
-  if (mode === 'dark') {
-    root.classList.add('dark');
-    return;
-  }
-  if (mode === 'light') {
-    root.classList.remove('dark');
-    return;
-  }
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  if (mq.matches) {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-  }
 }
 
 type ProfileErrors = Partial<{ displayName: string; email: string; bio: string }>;
@@ -83,10 +48,6 @@ function validateProfile(profile: SettingsFormValues['profile']): ProfileErrors 
   const errors: ProfileErrors = {};
   if (!profile.displayName.trim()) {
     errors.displayName = 'Display name is required.';
-  }
-  const email = profile.email.trim();
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errors.email = 'Enter a valid email address.';
   }
   if (profile.bio.length > 280) {
     errors.bio = 'Bio must be 280 characters or fewer.';
@@ -98,32 +59,40 @@ const tabPanelClass =
   'rounded-b-lg rounded-tr-lg border border-t-0 border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6';
 
 export function SettingsPanel() {
+  const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTabId>('profile');
-  const [draft, setDraft] = useState<SettingsFormValues>(() => cloneValues(INITIAL_VALUES));
-  const [saved, setSaved] = useState<SettingsFormValues>(() => cloneValues(INITIAL_VALUES));
+  const [draft, setDraft] = useState<SettingsFormValues | null>(null);
+  const [saved, setSaved] = useState<SettingsFormValues | null>(null);
   const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
-    applyThemeClass(draft.appearance.theme);
-  }, [draft.appearance.theme]);
-
-  useEffect(() => {
-    if (draft.appearance.theme !== 'system') {
-      return undefined;
-    }
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => applyThemeClass('system');
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, [draft.appearance.theme]);
+    if (!user) return;
+    const stored = loadUserSettings(user.id);
+    const base = stored ?? defaultSettingsForUser(user.name, user.email);
+    const values = {
+      ...base,
+      profile: {
+        ...base.profile,
+        displayName: base.profile.displayName || user.name,
+        email: user.email,
+      },
+    };
+    setDraft(cloneValues(values));
+    setSaved(cloneValues(values));
+    setTheme(values.appearance.theme);
+  }, [user, setTheme]);
 
   const updateDraft = useCallback(
     <K extends keyof SettingsFormValues>(section: K, partial: Partial<SettingsFormValues[K]>) => {
-      setDraft(prev => ({
-        ...prev,
-        [section]: { ...prev[section], ...partial },
-      }));
+      setDraft(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [section]: { ...prev[section], ...partial },
+        };
+      });
       setStatusMessage('');
       if (section === 'profile') {
         setProfileErrors({});
@@ -132,7 +101,13 @@ export function SettingsPanel() {
     []
   );
 
+  const handleThemeChange = (nextTheme: ThemePreference) => {
+    setTheme(nextTheme);
+    updateDraft('appearance', { theme: nextTheme });
+  };
+
   const handleSave = () => {
+    if (!draft || !user) return;
     const nextProfileErrors = validateProfile(draft.profile);
     setProfileErrors(nextProfileErrors);
     if (Object.keys(nextProfileErrors).length > 0) {
@@ -140,15 +115,27 @@ export function SettingsPanel() {
       setStatusMessage('Fix the highlighted fields, then try saving again.');
       return;
     }
-    setSaved(cloneValues(draft));
-    setStatusMessage('Your settings were saved. (Placeholder — connect to your API.)');
+    const next = cloneValues({
+      ...draft,
+      profile: { ...draft.profile, email: user.email },
+    });
+    saveUserSettings(user.id, next);
+    setSaved(next);
+    setTheme(next.appearance.theme);
+    setStatusMessage(`Settings saved for ${user.name}.`);
   };
 
   const handleCancel = () => {
+    if (!saved) return;
     setDraft(cloneValues(saved));
+    setTheme(saved.appearance.theme);
     setProfileErrors({});
     setStatusMessage('Changes discarded.');
   };
+
+  if (!user || !draft) {
+    return null;
+  }
 
   return (
     <section
@@ -158,6 +145,11 @@ export function SettingsPanel() {
       <h2 id="settings-heading" className="sr-only">
         Account settings
       </h2>
+
+      <p className="border-b border-slate-200 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400 sm:px-6">
+        Signed in as <span className="font-medium text-slate-900 dark:text-slate-100">{user.name}</span>
+        {' '}({user.role})
+      </p>
 
       <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -187,9 +179,8 @@ export function SettingsPanel() {
               type="email"
               autoComplete="email"
               value={draft.profile.email}
-              onChange={e => updateDraft('profile', { email: e.target.value })}
-              error={profileErrors.email}
-              hint="Optional — used for sign-in and notifications."
+              readOnly
+              hint="Linked to your signed-in account."
             />
             <TextAreaField
               label="Bio"
@@ -307,9 +298,7 @@ export function SettingsPanel() {
               label="Theme"
               name="theme"
               value={draft.appearance.theme}
-              onChange={e =>
-                updateDraft('appearance', { theme: e.target.value as ThemePreference })
-              }
+              onChange={e => handleThemeChange(e.target.value as ThemePreference)}
               hint="Uses your system setting when set to System."
               options={[
                 { value: 'system', label: 'System' },

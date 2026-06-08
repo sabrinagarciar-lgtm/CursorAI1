@@ -19,21 +19,32 @@ Start both with:
 
 Full deployment & test report: [docs/DEPLOYMENT_RESULTS.md](docs/DEPLOYMENT_RESULTS.md)
 
+## Recent Enhancements (June 8, 2026)
+
+| Change | Details |
+|--------|---------|
+| **Home page** | Removed Sign In CTA; primary action is **Browse Products** → `/search` |
+| **Navigation** | Replaced separate Shop + Search menus with a single **Search** item; `/shop` redirects to `/search` |
+| **Settings** | Protected route — requires sign-in; profile pre-filled from logged-in user; per-user settings stored in `localStorage` |
+| **Dark mode** | Fixed global theme: Tailwind `darkMode: 'class'`, `ThemeProvider`, persisted preference, layout + home support `dark:` styles |
+
 ## Test Results (Verified June 5, 2026)
 
-### Playwright E2E — 9/9 passed ✅
+### Playwright E2E — 11/11 passed ✅
 
 | Test | Result |
 |------|--------|
-| Home page feature modules | ✅ 138ms |
-| Shop page loads products | ✅ 130ms |
-| Product search filters | ✅ 160ms |
-| Settings panel tabs | ✅ 113ms |
-| Analytics dashboard | ✅ 146ms |
-| Kanban board columns | ✅ 139ms |
-| Social feed | ✅ 125ms |
-| Ticket creation | ✅ 196ms |
-| Navigation between modules | ✅ 252ms |
+| Home page feature modules | ✅ |
+| Search page loads products | ✅ |
+| Shop route redirects to search | ✅ |
+| Product search filters | ✅ |
+| Settings panel (logged-in user) | ✅ |
+| Dark mode theme toggle | ✅ |
+| Analytics dashboard | ✅ |
+| Kanban board columns | ✅ |
+| Social feed | ✅ |
+| Ticket creation | ✅ |
+| Navigation between modules | ✅ |
 
 ```bash
 # Run E2E (requires deployed app or auto-starts servers)
@@ -54,9 +65,8 @@ Report: [docs/coverage-report/index.html](docs/coverage-report/index.html)
 
 | Module | Source Exercise | Route |
 |--------|-----------------|-------|
-| E-Commerce (shop, cart, checkout) | 8.2 | `/shop`, `/cart`, `/checkout` |
-| Settings Panel | 3 | `/settings` |
-| Product Search | 5 | `/search` |
+| Product Search & E-Commerce | 5, 8.2 | `/search` (browse), `/cart`, `/checkout` |
+| Settings Panel (auth required) | 3 | `/settings` |
 | Analytics Dashboard | 4 | `/analytics` |
 | Kanban Board | 7 | `/kanban` |
 | Social Feed | 8.1 | `/social` |

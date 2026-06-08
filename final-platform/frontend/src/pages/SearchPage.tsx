@@ -15,12 +15,12 @@ export function SearchPage() {
   }, []);
 
   if (loading) {
-    return <p className="text-slate-500">Loading catalog...</p>;
+    return <p className="text-slate-500 dark:text-slate-400">Loading catalog...</p>;
   }
 
   return (
     <div data-testid="search-page">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">Product Search</h1>
+      <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">Product Search</h1>
       <ProductCatalog products={products} />
     </div>
   );
