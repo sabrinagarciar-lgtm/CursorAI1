@@ -38,6 +38,17 @@ test.describe("CursorHub Platform E2E", () => {
     }
   });
 
+  test("search category filter and add to cart work", async ({ page }) => {
+    await page.goto("/search");
+    await page.getByTestId("filter-category-Electronics").check();
+    await expect(page.getByTestId("result-count")).toContainText(/product/);
+    await expect(page.getByText("Wireless Bluetooth Headphones")).toBeVisible();
+    await expect(page.getByText("Organic Cotton T-Shirt")).not.toBeVisible();
+    await page.getByRole("button", { name: /add wireless bluetooth headphones to cart/i }).click();
+    const cartLink = page.getByRole("navigation").getByRole("link", { name: /cart/i });
+    await expect(cartLink).toContainText("1");
+  });
+
   test("settings panel renders tabs for logged-in user", async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto("/settings");
@@ -84,7 +95,10 @@ test.describe("CursorHub Platform E2E", () => {
   test("navigation between modules", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation");
-    await expect(nav.getByRole("link", { name: "Shop", exact: true })).toHaveCount(0);
+    const labels = ["Home", "Search", "Cart", "Orders", "Analytics", "Kanban", "Social", "Tickets", "Settings", "QA"];
+    for (const label of labels) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
+    }
     await nav.getByRole("link", { name: "Search", exact: true }).click();
     await expect(page).toHaveURL(/search/);
     await nav.getByRole("link", { name: "Analytics", exact: true }).click();

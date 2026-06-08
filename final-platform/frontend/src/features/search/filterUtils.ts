@@ -1,3 +1,4 @@
+import { derivePriority, normalizeCategory } from '../../lib/productNormalizer';
 import type { Product, ProductCategory, ProductPriority } from '../../types/product';
 
 export type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating-desc' | 'title-asc';
@@ -27,7 +28,7 @@ export function matchesCategories(
   selected: ProductCategory[],
 ): boolean {
   if (selected.length === 0) return true;
-  return product.category ? selected.includes(product.category as ProductCategory) : false;
+  return selected.includes(normalizeCategory(product.category));
 }
 
 export function matchesPriceBrackets(
@@ -43,7 +44,7 @@ export function matchesPriorities(
   selected: ProductPriority[],
 ): boolean {
   if (selected.length === 0) return true;
-  return product.priority ? selected.includes(product.priority) : false;
+  return selected.includes(derivePriority(product));
 }
 
 export function sortProducts(products: Product[], sort: SortOption): Product[] {

@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Home", end: true },
   { to: "/search", label: "Search" },
   { to: "/cart", label: "Cart" },
+  { to: "/orders", label: "Orders" },
   { to: "/analytics", label: "Analytics" },
   { to: "/kanban", label: "Kanban" },
   { to: "/social", label: "Social" },
@@ -52,11 +53,6 @@ export function Layout() {
                 )}
               </NavLink>
             ))}
-            {isAuthenticated && (
-              <NavLink to="/orders" className={navLinkClass}>
-                Orders
-              </NavLink>
-            )}
             {isAuthenticated ? (
               <>
                 <span className="hidden text-sm text-slate-600 dark:text-slate-400 lg:inline">

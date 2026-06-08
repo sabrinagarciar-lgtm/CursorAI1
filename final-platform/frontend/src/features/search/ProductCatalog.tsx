@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ProductCard from '../../components/ProductCard';
+import { useCart } from '../../context/CartContext';
 import type { Product, ProductCategory, ProductPriority } from '../../types/product';
 import {
   applyProductFilters,
@@ -50,7 +51,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [selectedPriorities, setSelectedPriorities] = useState<ProductPriority[]>([]);
   const [sort, setSort] = useState<SortOption>('featured');
   const [page, setPage] = useState(1);
-  const [cartItems, setCartItems] = useState<string[]>([]);
+  const { addToCart, itemCount } = useCart();
 
   const filteredSorted = useMemo(
     () =>
@@ -81,10 +82,6 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
       setPage(totalPages);
     }
   }, [page, totalPages]);
-
-  const handleAddToCart = useCallback((productId: string) => {
-    setCartItems((prev) => [...prev, productId]);
-  }, []);
 
   const toggleCategory = (c: ProductCategory) => {
     setSelectedCategories((prev) =>
@@ -129,13 +126,13 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           <p className="mt-2 text-slate-600">
             Search, filter, and sort — same catalog as Exercise 1, with more items for paging
           </p>
-          {cartItems.length > 0 && (
+          {itemCount > 0 && (
             <p
               className="mt-3 text-sm font-medium text-indigo-600"
               role="status"
               aria-live="polite"
             >
-              {cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in cart
+              {itemCount} item{itemCount !== 1 ? 's' : ''} in cart
             </p>
           )}
         </header>
@@ -288,7 +285,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
               >
                 {pageSlice.map((product) => (
                   <div key={product.id} className="overflow-visible pt-1" role="listitem">
-                    <ProductCard product={product} onAddToCart={handleAddToCart} />
+                    <ProductCard product={product} onAddToCart={addToCart} />
                   </div>
                 ))}
               </div>
